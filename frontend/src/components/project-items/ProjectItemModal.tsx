@@ -27,12 +27,12 @@ export function ProjectItemModal({
   
   const isNewItem = !item?.id
   
-  const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     defaultValues: isNewItem
       ? {
           project_id: projectId,
           item_name: '',
-          category: 'Otro',
+          category: 'Otro', // One of the enum values: 'Muebles', 'Decoración', 'Accesorios', 'Materiales', 'Mano de Obra', 'Otro'
           quantity: 1,
           estimated_cost: undefined,
           internal_cost: undefined,
@@ -54,20 +54,8 @@ export function ProjectItemModal({
           notes: item.notes || '',
         }
   })
-  
-  // Watch form values
-  const formValues = watch()
 
-  // Simple synchronization of internal cost to client cost
-  useEffect(() => {
-    // When internal cost changes, set client cost if it's empty
-    const internalCost = formValues.internal_cost;
-    
-    if (internalCost && !formValues.client_cost) {
-      setValue('client_cost', internalCost);
-    }
-  }, [formValues.internal_cost, setValue, formValues.client_cost])
-  
+
   // Handle escape key to close modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -96,7 +84,7 @@ export function ProjectItemModal({
           area: '',
           description: '',
           supplier_id: undefined,
-          category: 'Otro',
+          category: 'Otro', // Using one of the enum values: 'Muebles', 'Decoración', 'Accesorios', 'Materiales', 'Mano de Obra', 'Otro'
           quantity: 1,
           estimated_cost: undefined,
           internal_cost: undefined,
@@ -187,10 +175,11 @@ export function ProjectItemModal({
                   {...register('category', { required: 'La categoría es obligatoria' })}
                   className="w-full p-2 border rounded-md"
                 >
-                  <option value="Material">Material</option>
+                  <option value="Muebles">Muebles</option>
+                  <option value="Decoración">Decoración</option>
+                  <option value="Accesorios">Accesorios</option>
+                  <option value="Materiales">Materiales</option>
                   <option value="Mano de Obra">Mano de Obra</option>
-                  <option value="Servicio">Servicio</option>
-                  <option value="Equipo">Equipo</option>
                   <option value="Otro">Otro</option>
                 </select>
               </div>

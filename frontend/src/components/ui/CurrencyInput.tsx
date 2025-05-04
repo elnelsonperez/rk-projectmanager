@@ -6,6 +6,7 @@ interface CurrencyInputProps extends React.InputHTMLAttributes<HTMLInputElement>
   label?: string;
   error?: string;
   prefix?: string;
+  onFieldBlur?: (value: number | undefined) => void;
 }
 
 export const CurrencyInput: React.FC<CurrencyInputProps> = ({
@@ -13,12 +14,13 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
   label,
   error,
   prefix = 'RD$',
+  onFieldBlur,
   ...props
 }) => {
   const [displayValue, setDisplayValue] = useState('');
   
-  // Format number as currency
-  const formatAsCurrency = (value: string | number) => {
+  // Format number as currency - using useCallback to prevent infinite effect loops
+  const formatAsCurrency = React.useCallback((value: string | number) => {
     if (!value && value !== 0) return '';
     
     // Convert to number and format
@@ -30,7 +32,7 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
-  };
+  }, []);
   
   // Handle input focus
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -43,10 +45,12 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
   // Handle input blur
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const inputValue = e.target.value.trim();
+    let numericValue: number | undefined;
     
     // Handle empty input
     if (inputValue === '') {
       setDisplayValue('');
+      numericValue = undefined;
       
       // Set form value to undefined for empty input
       if (registration.onChange) {
@@ -55,8 +59,15 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
       }
     } else {
       // Convert to formatted currency on blur for non-empty values
+      const parsed = parseFloat(inputValue);
+      numericValue = !isNaN(parsed) ? parsed : undefined;
       const formattedValue = formatAsCurrency(inputValue);
       setDisplayValue(formattedValue);
+    }
+    
+    // Call the onFieldBlur callback if provided
+    if (onFieldBlur) {
+      onFieldBlur(numericValue);
     }
     
     // Also trigger the registered blur event
@@ -64,6 +75,15 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
       registration.onBlur(e);
     }
   };
+  
+  // Watch for changes in form value via the registration.value
+  useEffect(() => {
+    // If the registration has a value property (from React Hook Form)
+    const formValue = registration.value;
+    if (formValue !== undefined && formValue !== null) {
+      setDisplayValue(formatAsCurrency(formValue));
+    }
+  }, [registration.value, formatAsCurrency]);
   
   // Handle initial value and updates
   useEffect(() => {
@@ -73,7 +93,7 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
         : '';
       setDisplayValue(formatAsCurrency(value));
     }
-  }, [props.defaultValue]);
+  }, [props.defaultValue, formatAsCurrency]);
   
   return (
     <div className="relative">
