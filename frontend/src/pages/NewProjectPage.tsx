@@ -35,7 +35,14 @@ export default function NewProjectPage() {
       // Remove the client field from the data as it's not in the database schema
       // Also ensure client_id is properly typed
       const { client, ...restData } = formData;
-      const projectData: ProjectInput = restData;
+      
+      // Create a clean project data object with properly handled dates
+      const projectData: ProjectInput = {
+        ...restData,
+        // Ensure empty date strings are converted to null
+        start_date: restData.start_date && restData.start_date !== '' ? restData.start_date : null,
+        estimated_completion: restData.estimated_completion && restData.estimated_completion !== '' ? restData.estimated_completion : null
+      };
       
       // If a client was selected, make sure it exists or create it
       if (selectedClient) {
