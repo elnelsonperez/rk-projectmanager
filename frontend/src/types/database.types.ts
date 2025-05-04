@@ -16,7 +16,6 @@ export type Database = {
           email: string | null
           id: number
           name: string
-          row_index: number
           updated_at: string | null
         }
         Insert: {
@@ -25,7 +24,6 @@ export type Database = {
           email?: string | null
           id?: number
           name: string
-          row_index: number
           updated_at?: string | null
         }
         Update: {
@@ -34,7 +32,6 @@ export type Database = {
           email?: string | null
           id?: number
           name?: string
-          row_index?: number
           updated_at?: string | null
         }
         Relationships: []
@@ -53,7 +50,6 @@ export type Database = {
           notes: string | null
           project_id: number | null
           quantity: number | null
-          row_index: number
           status: string | null
           supplier_id: number | null
           updated_at: string | null
@@ -71,7 +67,6 @@ export type Database = {
           notes?: string | null
           project_id?: number | null
           quantity?: number | null
-          row_index: number
           status?: string | null
           supplier_id?: number | null
           updated_at?: string | null
@@ -89,7 +84,6 @@ export type Database = {
           notes?: string | null
           project_id?: number | null
           quantity?: number | null
-          row_index?: number
           status?: string | null
           supplier_id?: number | null
           updated_at?: string | null
@@ -120,7 +114,6 @@ export type Database = {
           id: number
           name: string
           notes: string | null
-          row_index: number
           start_date: string | null
           status: Database["public"]["Enums"]["estado_proyecto"]
           updated_at: string | null
@@ -133,7 +126,6 @@ export type Database = {
           id?: number
           name: string
           notes?: string | null
-          row_index: number
           start_date?: string | null
           status?: Database["public"]["Enums"]["estado_proyecto"]
           updated_at?: string | null
@@ -146,7 +138,6 @@ export type Database = {
           id?: number
           name?: string
           notes?: string | null
-          row_index?: number
           start_date?: string | null
           status?: Database["public"]["Enums"]["estado_proyecto"]
           updated_at?: string | null
@@ -171,7 +162,6 @@ export type Database = {
           id: number
           name: string
           phone: string | null
-          row_index: number
           updated_at: string | null
         }
         Insert: {
@@ -183,7 +173,6 @@ export type Database = {
           id?: number
           name: string
           phone?: string | null
-          row_index: number
           updated_at?: string | null
         }
         Update: {
@@ -195,7 +184,6 @@ export type Database = {
           id?: number
           name?: string
           phone?: string | null
-          row_index?: number
           updated_at?: string | null
         }
         Relationships: []
@@ -212,7 +200,6 @@ export type Database = {
           payment_method: Database["public"]["Enums"]["metodo_pago"]
           project_id: number | null
           project_item_id: number | null
-          row_index: number
           updated_at: string | null
         }
         Insert: {
@@ -226,7 +213,6 @@ export type Database = {
           payment_method?: Database["public"]["Enums"]["metodo_pago"]
           project_id?: number | null
           project_item_id?: number | null
-          row_index: number
           updated_at?: string | null
         }
         Update: {
@@ -240,7 +226,6 @@ export type Database = {
           payment_method?: Database["public"]["Enums"]["metodo_pago"]
           project_id?: number | null
           project_item_id?: number | null
-          row_index?: number
           updated_at?: string | null
         }
         Relationships: [

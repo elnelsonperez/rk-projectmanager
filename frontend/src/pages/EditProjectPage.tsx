@@ -1,21 +1,27 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useProject, useUpdateProject } from '../hooks/useProjects'
+import { useProject, useUpdateProject, ProjectInput } from '../hooks/useProjects'
+import { useClients, useCreateClient, ClientInput } from '../hooks/useClients'
 import { Button } from '../components/ui/button'
 import { Spinner } from '../components/ui/spinner'
+import { Combobox } from '../components/ui/Combobox'
 
-import { Database } from '../types/database.types'
+// We'll use ProjectInput from our hook for consistency
+// We only need to define our form input type that includes the client field
 
-// Define the ProjectInput type to match the database Update type
-type ProjectInput = Partial<Database['public']['Tables']['projects']['Update']> & { 
-  id?: number
+// Extended type with client field for form handling
+type ProjectFormInput = ProjectInput & {
+  client?: string;
 }
 
 export default function EditProjectPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
   const { data: project, isLoading, error } = useProject(projectId)
+  const { data: clients, isLoading: isLoadingClients } = useClients()
+  const createClient = useCreateClient()
+  const [selectedClient, setSelectedClient] = useState<string>('')
   
   // Debug
   console.log("ProjectId:", projectId)
@@ -24,7 +30,7 @@ export default function EditProjectPage() {
   console.log("Error state:", error)
   const updateProject = useUpdateProject()
   
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProjectInput>()
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProjectFormInput>()
   
   // Load project data into form
   useEffect(() => {
@@ -38,16 +44,54 @@ export default function EditProjectPage() {
         status: project.status,
         notes: project.notes || '',
       })
+      
+      // Find and set the client name if client_id exists
+      if (project.client_id && clients) {
+        const client = clients.find(c => c.id === project.client_id)
+        if (client) {
+          setSelectedClient(client.name)
+        }
+      }
     }
-  }, [project, reset])
+  }, [project, clients, reset])
   
-  const onSubmit = async (data: ProjectInput) => {
+  const onSubmit = async (formData: ProjectFormInput) => {
     if (!projectId) return
     
     try {
+      // Remove the client field from the data as it's not in the database schema
+      // Also ensure client_id is properly typed
+      const { client, ...restData } = formData;
+      const projectData: ProjectInput = restData;
+      
+      // If a client was selected, make sure it exists or create it
+      if (selectedClient) {
+        let clientId: number | null = null
+        
+        // Check if this is an existing client
+        const existingClient = clients?.find(c => c.name === selectedClient)
+        
+        if (existingClient) {
+          clientId = existingClient.id
+        } else {
+          // Create a new client
+          const clientData: ClientInput = {
+            name: selectedClient
+          }
+          const newClient = await createClient.mutateAsync(clientData)
+          clientId = newClient.id
+        }
+        
+        // Set the client ID in the data to be submitted
+        projectData.client_id = clientId
+      } else {
+        // If no client was selected, set client_id to null
+        projectData.client_id = null
+      }
+      
       await updateProject.mutateAsync({
         id: parseInt(projectId),
-        ...data
+        ...projectData
       })
       navigate(`/projects/${projectId}`)
     } catch (error) {
@@ -97,17 +141,25 @@ export default function EditProjectPage() {
         </div>
         
         <div className="space-y-2">
-          <label htmlFor="client_id" className="block font-medium">
+          <label htmlFor="client" className="block font-medium">
             Cliente
           </label>
-          <select
-            id="client_id"
-            {...register('client_id')}
-            className="w-full p-2 border rounded-md"
-          >
-            <option value="">Sin cliente</option>
-            {/* We would fetch and map clients here */}
-          </select>
+          {isLoadingClients ? (
+            <div className="w-full p-2 border rounded-md flex items-center">
+              <Spinner size="sm" className="mr-2" /> Cargando clientes...
+            </div>
+          ) : (
+            <Combobox
+              id="client"
+              options={clients?.map(client => client.name) || []}
+              registration={register('client', { 
+                required: false,
+                onChange: (e) => setSelectedClient(e.target.value)
+              })}
+              defaultValue={selectedClient}
+              placeholder="Seleccionar o crear un cliente"
+            />
+          )}
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

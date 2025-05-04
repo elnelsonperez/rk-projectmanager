@@ -1,30 +1,65 @@
 
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-import { useCreateProject } from '../hooks/useProjects'
+import { useCreateProject, ProjectInput } from '../hooks/useProjects'
+import { useClients, useCreateClient, ClientInput } from '../hooks/useClients'
 import { Button } from '../components/ui/button'
-import { Database } from '../types/database.types'
+import { Spinner } from '../components/ui/spinner'
+import { Combobox } from '../components/ui/Combobox'
 
-// Use the project insert type directly from the database types
-type ProjectInput = Omit<Database['public']['Tables']['projects']['Insert'], 'id' | 'created_at' | 'updated_at'>
+// We'll use ProjectInput from our hook
 
 export default function NewProjectPage() {
   const navigate = useNavigate()
   const createProject = useCreateProject()
+  const { data: clients, isLoading: isLoadingClients } = useClients()
+  const createClient = useCreateClient()
+  const [selectedClient, setSelectedClient] = useState<string>('')
   
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProjectInput>({
+  // Extended type with client field for form handling
+  type ProjectFormInput = ProjectInput & {
+    client?: string;
+  }
+  
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProjectFormInput>({
     defaultValues: {
       name: '',
       status: 'Planificación',
       notes: '',
-      row_index: 0, // Will be auto-incremented by database trigger
     }
   })
   
-  const onSubmit = async (data: ProjectInput) => {
+  const onSubmit = async (formData: ProjectFormInput) => {
     try {
+      // Remove the client field from the data as it's not in the database schema
+      // Also ensure client_id is properly typed
+      const { client, ...restData } = formData;
+      const projectData: ProjectInput = restData;
+      
+      // If a client was selected, make sure it exists or create it
+      if (selectedClient) {
+        let clientId: number | null = null
+        
+        // Check if this is an existing client
+        const existingClient = clients?.find(c => c.name === selectedClient)
+        
+        if (existingClient) {
+          clientId = existingClient.id
+        } else {
+          // Create a new client
+          const clientData: ClientInput = {
+            name: selectedClient
+          }
+          const newClient = await createClient.mutateAsync(clientData)
+          clientId = newClient.id
+        }
+        
+        // Set the client ID in the data to be submitted
+        projectData.client_id = clientId
+      }
 
-      const newProject = await createProject.mutateAsync(data as any)
+      const newProject = await createProject.mutateAsync(projectData)
       navigate(`/projects/${newProject.id}`)
     } catch (error) {
       console.error('Failed to create project:', error)
@@ -51,17 +86,25 @@ export default function NewProjectPage() {
         </div>
         
         <div className="space-y-2">
-          <label htmlFor="client_id" className="block font-medium">
+          <label htmlFor="client" className="block font-medium">
             Cliente
           </label>
-          <select
-            id="client_id"
-            {...register('client_id')}
-            className="w-full p-2 border rounded-md"
-          >
-            <option value="">Sin cliente</option>
-            {/* We would fetch and map clients here */}
-          </select>
+          {isLoadingClients ? (
+            <div className="w-full p-2 border rounded-md flex items-center">
+              <Spinner size="sm" className="mr-2" /> Cargando clientes...
+            </div>
+          ) : (
+            <Combobox
+              id="client"
+              options={clients?.map(client => client.name) || []}
+              registration={register('client', {
+                required: false,
+                onChange: (e) => setSelectedClient(e.target.value)
+              })}
+              defaultValue={selectedClient}
+              placeholder="Seleccionar o crear un cliente"
+            />
+          )}
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
