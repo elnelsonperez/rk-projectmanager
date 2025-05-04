@@ -22,9 +22,10 @@ type ProjectItemWithSupplier = ProjectItem & {
 interface ProjectItemsTableProps {
   projectId: number
   onEditItem: (item: ProjectItemWithSupplier) => void
+  onCreateTransaction?: (item: ProjectItemWithSupplier) => void
 }
 
-export function ProjectItemsTable({ projectId, onEditItem }: ProjectItemsTableProps) {
+export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction }: ProjectItemsTableProps) {
   const { data: items, isLoading } = useProjectItems(projectId)
   const [sorting, setSorting] = useState<SortingState>([])
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null)
@@ -33,6 +34,11 @@ export function ProjectItemsTable({ projectId, onEditItem }: ProjectItemsTablePr
   const columnHelper = createColumnHelper<ProjectItemWithSupplier>()
   
   const columns: ColumnDef<ProjectItemWithSupplier, any>[] = [
+    {
+      id: 'row_number',
+      header: '#',
+      cell: ({ row }) => row.index + 1,
+    },
     columnHelper.accessor('item_name', {
       header: 'Nombre',
       cell: info => info.getValue(),
@@ -73,16 +79,31 @@ export function ProjectItemsTable({ projectId, onEditItem }: ProjectItemsTablePr
       id: 'actions',
       header: '',
       cell: ({ row }) => (
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={e => {
-            e.stopPropagation()
-            onEditItem(row.original)
-          }}
-        >
-          Editar
-        </Button>
+        <div className="flex space-x-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={e => {
+              e.stopPropagation()
+              onEditItem(row.original)
+            }}
+          >
+            Editar
+          </Button>
+          
+          {onCreateTransaction && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={e => {
+                e.stopPropagation()
+                onCreateTransaction(row.original)
+              }}
+            >
+              + Trans
+            </Button>
+          )}
+        </div>
       ),
     },
   ]
@@ -97,6 +118,8 @@ export function ProjectItemsTable({ projectId, onEditItem }: ProjectItemsTablePr
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    enableSorting: true,
+    enableMultiSort: true,
   })
 
   // Handle keyboard navigation

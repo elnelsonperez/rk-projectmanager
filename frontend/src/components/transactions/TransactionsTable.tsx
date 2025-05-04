@@ -33,6 +33,11 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
   const columnHelper = createColumnHelper<TransactionWithProjectItem>()
   
   const columns: ColumnDef<TransactionWithProjectItem, any>[] = [
+    {
+      id: 'row_number',
+      header: '#',
+      cell: ({ row }) => row.index + 1,
+    },
     columnHelper.accessor('date', {
       header: 'Fecha',
       cell: info => new Date(info.getValue()).toLocaleDateString(),

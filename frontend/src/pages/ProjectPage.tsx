@@ -62,6 +62,17 @@ export default function ProjectPage() {
   const handleAddTransaction = () => {
     setSelectedTransaction(undefined)
     setTransactionModalOpen(true)
+    setActiveTab('transactions')
+  }
+  
+  const handleCreateTransactionForItem = (item: ProjectItem) => {
+    // Create a partial transaction with the project item pre-selected
+    setSelectedTransaction({
+      project_id: Number(projectId),
+      project_item_id: item.id,
+    } as Transaction)
+    setTransactionModalOpen(true)
+    setActiveTab('transactions')
   }
   
   const handleEditTransaction = (transaction: Transaction) => {
@@ -163,6 +174,7 @@ export default function ProjectPage() {
           <ProjectItemsTable 
             projectId={Number(projectId)}
             onEditItem={handleEditItem}
+            onCreateTransaction={handleCreateTransactionForItem}
           />
           
           {itemModalOpen && (

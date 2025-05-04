@@ -127,8 +127,11 @@ export function TransactionModal({
                 </label>
                 <select
                   id="project_item_id"
-                  {...register('project_item_id', { valueAsNumber: true })}
+                  {...register('project_item_id', { 
+                    valueAsNumber: true
+                  })}
                   className="w-full p-2 border rounded-md"
+                  defaultValue={transaction?.project_item_id || ""}
                 >
                   <option value="">No specific item</option>
                   {projectItems?.map(item => (
