@@ -10,3 +10,12 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseKey)
+
+// Function to get project report data
+export async function getProjectReport(projectId: number) {
+  const { data, error } = await supabase
+    .rpc('get_project_report', { p_project_id: projectId });
+
+  if (error) throw error;
+  return data;
+}

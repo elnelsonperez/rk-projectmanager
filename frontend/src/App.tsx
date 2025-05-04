@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import ProjectPage from './pages/ProjectPage'
 import NewProjectPage from './pages/NewProjectPage'
 import EditProjectPage from './pages/EditProjectPage'
+import ProjectReportPage from './pages/ProjectReportPage'
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -30,6 +31,7 @@ function App() {
               <Route path="new" element={<NewProjectPage />} />
               <Route path=":projectId" element={<ProjectPage />} />
               <Route path="edit/:projectId" element={<EditProjectPage />} />
+              <Route path=":projectId/report" element={<ProjectReportPage />} />
             </Route>
           </Route>
         </Routes>

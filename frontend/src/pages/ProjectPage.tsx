@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useProject } from '../hooks/useProjects'
 import { useProjectStore } from '../store/projectStore'
 import { Button } from '../components/ui/button'
@@ -116,6 +116,9 @@ export default function ProjectPage() {
         
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleEditProject}>Editar Proyecto</Button>
+          <Link to={`/projects/${projectId}/report`}>
+            <Button variant="outline">Ver Reporte</Button>
+          </Link>
         </div>
       </div>
       

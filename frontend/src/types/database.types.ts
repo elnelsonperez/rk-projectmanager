@@ -250,7 +250,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_project_report: {
+        Args: { p_project_id: number }
+        Returns: {
+          category: string
+          area: string
+          item_name: string
+          estimated_cost: number
+          actual_cost: number
+          difference_percentage: number
+          amount_paid: number
+          pending_to_pay: number
+        }[]
+      }
     }
     Enums: {
       categoria_item:
