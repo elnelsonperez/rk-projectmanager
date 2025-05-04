@@ -92,8 +92,8 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
     },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    // Remove pagination to show all items
   })
 
   // Handle keyboard navigation
@@ -211,35 +211,30 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
                 ))}
               </tr>
             ))}
+            
+            {/* Summary row */}
+            {transactions && transactions.length > 0 && (
+              <tr className="bg-muted/40 font-medium">
+                <td className="px-4 py-3 text-sm text-foreground">Total</td>
+                <td colSpan={3} className="px-4 py-3 text-sm text-foreground"></td>
+                <td className="px-4 py-3 text-sm text-foreground">
+                  {formatCurrency(
+                    transactions.reduce((sum, item) => sum + (item.amount || 0), 0)
+                  )}
+                </td>
+                <td className="px-4 py-3 text-sm text-foreground">
+                  {formatCurrency(
+                    transactions.reduce((sum, item) => sum + (item.client_facing_amount || 0), 0)
+                  )}
+                </td>
+                <td colSpan={3} className="px-4 py-3 text-sm text-foreground"></td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
       
-      <div className="border-t p-2 flex justify-between items-center">
-        <div className="flex space-x-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Anterior
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Siguiente
-          </Button>
-        </div>
-        
-        <span className="text-sm text-muted-foreground">
-          Página {table.getState().pagination.pageIndex + 1} de{' '}
-          {table.getPageCount()}
-        </span>
-      </div>
+      {/* Pagination removed - showing all items */}
     </div>
   )
 }

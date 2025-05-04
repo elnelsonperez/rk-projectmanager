@@ -116,8 +116,8 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction }
     },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    // Remove pagination to show all items
     enableSorting: true,
     enableMultiSort: true,
   })
@@ -237,35 +237,38 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction }
                 ))}
               </tr>
             ))}
+            
+            {/* Summary row */}
+            {items && items.length > 0 && (
+              <tr className="bg-muted/40 font-medium">
+                <td className="px-4 py-3 text-sm text-foreground">Total</td>
+                <td colSpan={4} className="px-4 py-3 text-sm text-foreground"></td>
+                <td className="px-4 py-3 text-sm text-foreground">
+                  {items.reduce((sum, item) => sum + (item.quantity || 0), 0)}
+                </td>
+                <td className="px-4 py-3 text-sm text-foreground">
+                  {formatCurrency(
+                    items.reduce((sum, item) => sum + (item.estimated_cost || 0), 0)
+                  )}
+                </td>
+                <td className="px-4 py-3 text-sm text-foreground">
+                  {formatCurrency(
+                    items.reduce((sum, item) => sum + (item.internal_cost || 0), 0)
+                  )}
+                </td>
+                <td className="px-4 py-3 text-sm text-foreground">
+                  {formatCurrency(
+                    items.reduce((sum, item) => sum + (item.client_cost || 0), 0)
+                  )}
+                </td>
+                <td colSpan={2} className="px-4 py-3 text-sm text-foreground"></td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
       
-      <div className="border-t p-2 flex justify-between items-center">
-        <div className="flex space-x-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Anterior
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Siguiente
-          </Button>
-        </div>
-        
-        <span className="text-sm text-muted-foreground">
-          Página {table.getState().pagination.pageIndex + 1} de{' '}
-          {table.getPageCount()}
-        </span>
-      </div>
+      {/* Pagination removed - showing all items */}
     </div>
   )
 }
