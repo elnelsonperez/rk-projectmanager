@@ -262,7 +262,7 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
       defaultSorting={defaultSorting}
       renderTableHeader={({ columnSelector }) => (
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <div className="flex flex-col xs:flex-row gap-2 items-start xs:items-center">
+          <div className="flex  xs:flex-row gap-4 items-start xs:items-center">
             <Button 
               size="sm" 
               onClick={() => onEditTransaction({} as TransactionWithProjectItem)}
