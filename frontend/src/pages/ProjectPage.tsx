@@ -214,12 +214,12 @@ export default function ProjectPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
         <div className="flex justify-between items-center mb-2">
           <TabsList className="h-9">
-            <TabsTrigger value="items" className="text-sm px-3 py-1.5">Elementos</TabsTrigger>
+            <TabsTrigger value="items" className="text-sm px-3 py-1.5">Artículos</TabsTrigger>
             <TabsTrigger value="transactions" className="text-sm px-3 py-1.5">Transacciones</TabsTrigger>
           </TabsList>
           
           {activeTab === 'items' ? (
-            <Button size="sm" onClick={handleAddItem}>Añadir Elemento</Button>
+            <Button size="sm" onClick={handleAddItem}>Añadir Artículo</Button>
           ) : (
             <Button size="sm" onClick={handleAddTransaction}>Añadir Transacción</Button>
           )}

@@ -30,11 +30,15 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
       header: 'Fecha',
       cell: info => new Date(info.getValue()).toLocaleDateString(),
     }),
-    columnHelper.accessor('project_items.item_name', {
-      id: 'project_items.item_name', // Explicitly add id to ensure it's defined
-      header: 'Elemento de Proyecto',
-      cell: info => info.getValue() || 'N/A',
-    }),
+    // Use accessorFn instead of dot notation to safely handle nullable nested objects
+    columnHelper.accessor(
+      row => row.project_items?.item_name || null,
+      {
+        id: 'project_items.item_name',
+        header: 'Artículo de Proyecto',
+        cell: info => info.getValue() || 'N/A',
+      }
+    ),
     columnHelper.accessor('description', {
       id: 'description', // Explicitly add id to ensure it's defined
       header: 'Descripción',

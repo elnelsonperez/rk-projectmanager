@@ -109,7 +109,7 @@ export function ProjectItemModal({
       <div className="z-10 bg-background rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-background p-4 border-b flex justify-between items-center">
           <h2 className="text-xl font-semibold">
-            {isNewItem ? 'Añadir Elemento de Proyecto' : 'Editar Elemento de Proyecto'}
+            {isNewItem ? 'Añadir Artículo de Proyecto' : 'Editar Artículo de Proyecto'}
           </h2>
           <button
             onClick={onClose}
@@ -138,13 +138,13 @@ export function ProjectItemModal({
               
               <div className="space-y-2 md:col-span-2">
                 <label htmlFor="item_name" className="block font-medium">
-                  Nombre del Elemento <span className="text-red-500">*</span>
+                  Nombre del Artículo <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="item_name"
-                  {...register('item_name', { required: 'El nombre del elemento es obligatorio' })}
+                  {...register('item_name', { required: 'El nombre del artículo es obligatorio' })}
                   className="w-full p-2 border rounded-md"
-                  placeholder="Nombre del elemento"
+                  placeholder="Nombre del artículo"
                 />
                 {errors.item_name && (
                   <p className="text-red-500 text-sm">{errors.item_name.message}</p>
@@ -162,7 +162,7 @@ export function ProjectItemModal({
                   type="text"
                   {...register('description')}
                   className="w-full p-2 border rounded-md"
-                  placeholder="Descripción breve del elemento"
+                  placeholder="Descripción breve del artículo"
                 />
               </div>
               

@@ -41,11 +41,15 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction }
       header: 'Categoría',
       cell: info => info.getValue(),
     }),
-    columnHelper.accessor('suppliers.name', {
-      id: 'suppliers.name', // Explicitly add id to ensure it's defined
-      header: 'Proveedor',
-      cell: info => info.getValue() || '-',
-    }),
+    // Use accessorFn instead of dot notation to safely handle nullable nested objects
+    columnHelper.accessor(
+      row => row.suppliers?.name || null,
+      {
+        id: 'suppliers.name',
+        header: 'Proveedor',
+        cell: info => info.getValue() || '-',
+      }
+    ),
     columnHelper.accessor('quantity', {
       id: 'quantity', // Explicitly add id to ensure it's defined
       header: 'Cant.',
@@ -121,9 +125,9 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction }
       onRowActionClick={onCreateTransaction}
       actionIcon={<PlusSquare className="h-3 w-3" />}
       actionTooltip="Crear transacción"
-      noDataMessage="No se encontraron elementos. Añade tu primer elemento para comenzar."
+      noDataMessage="No se encontraron artículos. Añade tu primer artículo para comenzar."
       noDataAction={{
-        label: "Añadir Primer Elemento",
+        label: "Añadir Primer Artículo",
         onClick: () => onEditItem({} as ProjectItemWithSupplier)
       }}
       summaryRow={summaryRow}
