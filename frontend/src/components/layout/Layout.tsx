@@ -6,7 +6,7 @@ import { Button } from '../ui/button'
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
   
   return (
     <div className="h-screen flex flex-col">
@@ -39,7 +39,11 @@ export default function Layout() {
       <div className="flex flex-1 overflow-hidden">
         {/* Mobile sidebar (drawer) */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-          <SheetContent side="left" className="w-[280px] sm:w-[350px] p-0">
+          <SheetContent 
+            side="left" 
+            className="w-[280px] sm:w-[350px] p-0"
+            onClose={() => setSidebarOpen(false)}
+          >
             <Sidebar />
           </SheetContent>
         </Sheet>
@@ -53,7 +57,7 @@ export default function Layout() {
         
         {/* Main content */}
         <div className="flex-1 overflow-auto">
-          <div className="container py-6">
+          <div className="container mx-auto px-3 py-4 sm:py-6 max-w-full sm:max-w-7xl">
             <Outlet />
           </div>
         </div>

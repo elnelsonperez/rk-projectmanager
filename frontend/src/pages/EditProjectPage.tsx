@@ -129,8 +129,8 @@ export default function EditProjectPage() {
   }
   
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Editar Proyecto</h1>
+    <div className="w-full max-w-2xl mx-auto">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Editar Proyecto</h1>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
@@ -246,17 +246,21 @@ export default function EditProjectPage() {
           />
         </div>
         
-        <div className="flex justify-end space-x-4 pt-4">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:space-x-4 pt-4">
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate(`/projects/${projectId}`)}
+            className="mt-2 sm:mt-0 text-xs sm:text-sm"
+            size="sm"
           >
             Cancelar
           </Button>
           <Button
             type="submit"
             disabled={isSubmitting}
+            className="text-xs sm:text-sm"
+            size="sm"
           >
             {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
           </Button>

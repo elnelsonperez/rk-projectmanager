@@ -50,7 +50,6 @@ export function DataTable<TData>({
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>(defaultSorting);
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
-  const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     initialColumnVisibility || {}
   );
@@ -224,9 +223,7 @@ export function DataTable<TData>({
                   }`}
                   onMouseEnter={() => {
                     setSelectedRowIndex(rowIndex);
-                    setHoveredRowIndex(rowIndex);
                   }}
-                  onMouseLeave={() => setHoveredRowIndex(null)}
                 >
                   {row.getVisibleCells().map(cell => {
                     // Get cell value as string

@@ -9,10 +9,10 @@ export default function Dashboard() {
   
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Panel</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
+        <h1 className="text-2xl sm:text-3xl font-bold">Panel</h1>
         <Link to="/projects/new">
-          <Button>Nuevo Proyecto</Button>
+          <Button size="sm" className="text-xs sm:text-sm">Nuevo Proyecto</Button>
         </Link>
       </div>
       
@@ -39,7 +39,7 @@ export default function Dashboard() {
               <div className="border rounded-lg p-6 hover:border-primary transition-colors h-full flex flex-col">
                 <h3 className="font-semibold text-xl mb-2">{project.name}</h3>
                 
-                <div className="mt-auto flex justify-between pt-4 text-sm text-muted-foreground">
+                <div className="mt-auto flex flex-col sm:flex-row justify-between pt-4 text-xs sm:text-sm text-muted-foreground">
                   <div>
                     <p>Estado: {project.status}</p>
                     {project.start_date && (
@@ -47,7 +47,7 @@ export default function Dashboard() {
                     )}
                   </div>
                   {project.budget && (
-                    <p className="font-medium">
+                    <p className="font-medium mt-2 sm:mt-0">
                       {formatCurrency(project.budget)}
                     </p>
                   )}

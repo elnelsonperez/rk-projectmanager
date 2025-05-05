@@ -78,24 +78,11 @@ export default function ProjectPage() {
     }
   }
   
-  // Project Items handlers
-  const handleAddItem = () => {
-    setSelectedItem(undefined)
-    setItemModalOpen(true)
-  }
-  
   const handleEditItem = (item: ProjectItem) => {
     setSelectedItem(item)
     setItemModalOpen(true)
   }
-  
-  // Transaction handlers
-  const handleAddTransaction = () => {
-    setSelectedTransaction(undefined)
-    setTransactionModalOpen(true)
-    setActiveTab('transactions')
-  }
-  
+
   const handleCreateTransactionForItem = (item: ProjectItem) => {
     // Create a partial transaction with the project item pre-selected
     setSelectedTransaction({
@@ -174,7 +161,7 @@ export default function ProjectPage() {
         </div>
       </div>
       
-      <div className="flex flex-wrap gap-3 bg-muted/20 rounded-lg p-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-muted/20 rounded-lg p-3">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground">Estado:</span>
           <span className="text-sm">{project.status || 'No establecido'}</span>
@@ -194,7 +181,7 @@ export default function ProjectPage() {
           </span>
         </div>
         
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-2 sm:justify-end">
           <span className="text-sm font-medium text-muted-foreground">Presupuesto:</span>
           <span className="text-sm font-semibold">
             {project.budget ? formatCurrency(project.budget) : 'No establecido'}

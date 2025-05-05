@@ -79,7 +79,6 @@ const ReportTable: React.FC<ReportTableProps> = ({
                 {/* Area subtotal row */}
                 <tr className="bg-muted/40 font-medium">
                   {visibleColumns.map((col, colIndex) => {
-                    const isNumeric = numericColumns.includes(col.id);
                     
                     if (colIndex === 0) {
                       // First column shows the subtotal label
@@ -127,7 +126,6 @@ const ReportTable: React.FC<ReportTableProps> = ({
             {/* Grand total row with double border */}
             <tr className="bg-primary/10 font-bold">
               {visibleColumns.map((col, colIndex) => {
-                const isNumeric = numericColumns.includes(col.id);
                 const style = {
                   borderRight: colIndex === visibleColumns.length - 1 ? 'none' : '1px solid var(--border)',
                   borderTop: '3px double #999'

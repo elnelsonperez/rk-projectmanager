@@ -90,18 +90,20 @@ export default function ProjectReportPage() {
   }
   
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="w-full">
       {/* Header with title and actions */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Reporte de Proyecto</h1>
-          <Link to={`/projects/${projectId}`} className="text-blue-500 hover:underline">
+          <h1 className="text-2xl sm:text-3xl font-bold">Reporte de Proyecto</h1>
+          <Link to={`/projects/${projectId}`} className="text-blue-500 hover:underline text-sm">
             Volver al Proyecto
           </Link>
         </div>
         
-        <div className="flex space-x-2 mt-4 md:mt-0">
-          <Button onClick={handlePrint} variant="outline">Imprimir Reporte</Button>
+        <div className="flex space-x-2 mt-4 sm:mt-0">
+          <Button onClick={handlePrint} variant="outline" size="sm" className="text-xs sm:text-sm">
+            Imprimir Reporte
+          </Button>
         </div>
       </div>
       
