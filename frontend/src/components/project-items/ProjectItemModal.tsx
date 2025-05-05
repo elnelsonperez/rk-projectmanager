@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { useCreateProjectItem, useUpdateProjectItem, ProjectItem, useProjectAreas } from '../../hooks/useProjectItems'
+import { useCreateProjectItem, useUpdateProjectItem, useDeleteProjectItem, ProjectItem, useProjectAreas } from '../../hooks/useProjectItems'
 import { Button } from '../ui/button'
 import { CurrencyInput } from '../ui/CurrencyInput'
 import { Combobox } from '../ui/Combobox'
 import { toast } from '../ui/toast'
+import { ConfirmationDialog } from '../ui/confirmation-dialog'
+import { Trash2 } from 'lucide-react'
 
 interface ProjectItemModalProps {
   isOpen: boolean
@@ -21,10 +23,15 @@ export function ProjectItemModal({
   item,
   onClose
 }: ProjectItemModalProps) {
+  // Delete confirmation state
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  
   const isNewItem = !item?.id
   const [saveAndAddAnother, setSaveAndAddAnother] = useState(isNewItem)
   const createItem = useCreateProjectItem()
   const updateItem = useUpdateProjectItem()
+  const deleteItem = useDeleteProjectItem()
   const { data: areas = [] } = useProjectAreas(projectId)
   
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -67,6 +74,42 @@ export function ProjectItemModal({
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
+  
+  // Handle project item deletion
+  const handleDeleteClick = () => {
+    setShowDeleteConfirmation(true);
+  };
+  
+  const handleCancelDelete = () => {
+    setShowDeleteConfirmation(false);
+  };
+  
+  const handleConfirmDelete = async () => {
+    if (!item?.id) return;
+    
+    try {
+      setIsDeleting(true);
+      
+      // Delete the project item
+      await deleteItem.mutateAsync({ id: item.id, projectId });
+      
+      toast({ 
+        message: `"${item.item_name}" ha sido eliminado exitosamente`, 
+        type: 'success' 
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error('Error deleting project item:', error);
+      setIsDeleting(false);
+      setShowDeleteConfirmation(false);
+      
+      toast({ 
+        message: `Error al eliminar el artículo: ${error instanceof Error ? error.message : 'Error desconocido'}`, 
+        type: 'error'
+      });
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -118,7 +161,28 @@ export function ProjectItemModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
       
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog 
+        isOpen={showDeleteConfirmation}
+        title="Eliminar Artículo"
+        message="¿Estás seguro que deseas eliminar este artículo? Esta acción no se puede deshacer y también eliminará todas las transacciones asociadas a este artículo."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        confirmColor="destructive"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
+      
       <div className="z-10 bg-background rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        {isDeleting && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-50 rounded-lg">
+            <div className="text-center">
+              <div className="spinner mb-2"></div>
+              <p>Eliminando artículo...</p>
+            </div>
+          </div>
+        )}
+      
         <div className="sticky top-0 bg-background p-4 border-b flex justify-between items-center">
           <h2 className="text-xl font-semibold">
             {isNewItem ? 'Añadir Artículo de Proyecto' : 'Editar Artículo de Proyecto'}
@@ -302,32 +366,49 @@ export function ProjectItemModal({
             </div>
           </div>
           
-          <div className="sticky bottom-0 bg-background p-4 border-t flex flex-wrap justify-end gap-3">
-            <label className="flex items-center mr-auto">
-              <input
-                type="checkbox"
-                checked={saveAndAddAnother}
-                onChange={e => setSaveAndAddAnother(e.target.checked)}
-                className="mr-2"
-              />
-              Guardar y añadir otro
-            </label>
+          <div className="sticky bottom-0 bg-background p-4 border-t flex flex-wrap justify-between gap-3">
+            <div>
+              {!isNewItem && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDeleteClick}
+                  disabled={isSubmitting}
+                  className="flex items-center gap-1"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Eliminar</span>
+                </Button>
+              )}
+            </div>
             
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancelar
-            </Button>
-            
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Guardando...' : isNewItem ? 'Crear' : 'Guardar'}
-            </Button>
+            <div className="flex items-center gap-3 ml-auto">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={saveAndAddAnother}
+                  onChange={e => setSaveAndAddAnother(e.target.checked)}
+                  className="mr-2"
+                />
+                Guardar y añadir otro
+              </label>
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </Button>
+              
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Guardando...' : isNewItem ? 'Crear' : 'Guardar'}
+              </Button>
+            </div>
           </div>
         </form>
       </div>

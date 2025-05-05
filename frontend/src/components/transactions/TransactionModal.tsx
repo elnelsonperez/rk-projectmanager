@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
-import { useCreateTransaction, useUpdateTransaction, Transaction } from '../../hooks/useTransactions'
+import { useCreateTransaction, useUpdateTransaction, useDeleteTransaction, Transaction } from '../../hooks/useTransactions'
 import { useProjectItems, useProjectItem } from '../../hooks/useProjectItems'
 import { useTransactionAttachment } from '../../hooks/useTransactionAttachment'
 import { useProjectItemBudgetGuidance } from '../../hooks/useProjectItemTransactions'
@@ -10,6 +10,8 @@ import { toast } from '../ui/toast'
 import { ComboboxObject } from '../ui/ComboboxObject'
 import { CurrencyInput } from '../ui/CurrencyInput'
 import { BudgetGuidance } from './BudgetGuidance'
+import { ConfirmationDialog } from '../ui/confirmation-dialog'
+import { Trash2 } from 'lucide-react'
 
 interface TransactionModalProps {
   isOpen: boolean
@@ -28,11 +30,16 @@ export function TransactionModal({
   transaction,
   onClose
 }: TransactionModalProps) {
+  // Delete confirmation state
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  
   const isNewTransaction = !transaction?.id
   const [saveAndAddAnother, setSaveAndAddAnother] = useState(isNewTransaction)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const createTransaction = useCreateTransaction()
   const updateTransaction = useUpdateTransaction()
+  const deleteTransaction = useDeleteTransaction()
   const { data: projectItems } = useProjectItems(projectId)
   const { 
     handleUpload, 
@@ -111,6 +118,47 @@ export function TransactionModal({
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
+  
+  // Handle transaction deletion
+  const handleDeleteClick = () => {
+    setShowDeleteConfirmation(true);
+  };
+  
+  const handleCancelDelete = () => {
+    setShowDeleteConfirmation(false);
+  };
+  
+  const handleConfirmDelete = async () => {
+    if (!transaction?.id) return;
+    
+    try {
+      setIsDeleting(true);
+      
+      // If there's an attachment, remove it first
+      if (transaction.attachment_url) {
+        await handleRemove(transaction.attachment_url);
+      }
+      
+      // Delete the transaction
+      await deleteTransaction.mutateAsync({ id: transaction.id, projectId });
+      
+      toast({ 
+        message: 'Transacción eliminada exitosamente', 
+        type: 'success' 
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      setIsDeleting(false);
+      setShowDeleteConfirmation(false);
+      
+      toast({ 
+        message: `Error al eliminar la transacción: ${error instanceof Error ? error.message : 'Error desconocido'}`, 
+        type: 'error'
+      });
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -196,7 +244,28 @@ export function TransactionModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
       
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog 
+        isOpen={showDeleteConfirmation}
+        title="Eliminar Transacción"
+        message="¿Estás seguro que deseas eliminar esta transacción? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        confirmColor="destructive"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
+      
       <div className="z-10 bg-background rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        {isDeleting && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-50 rounded-lg">
+            <div className="text-center">
+              <div className="spinner mb-2"></div>
+              <p>Eliminando transacción...</p>
+            </div>
+          </div>
+        )}
+      
         <div className="sticky top-0 bg-background p-4 border-b flex justify-between items-center">
           <h2 className="text-xl font-semibold">
             {isNewTransaction ? 'Añadir Transacción' : 'Editar Transacción'}
@@ -396,32 +465,49 @@ export function TransactionModal({
             />
           </div>
           
-          <div className="sticky bottom-0 bg-background p-4 border-t flex flex-wrap justify-end gap-3">
-            <label className="flex items-center mr-auto">
-              <input
-                type="checkbox"
-                checked={saveAndAddAnother}
-                onChange={e => setSaveAndAddAnother(e.target.checked)}
-                className="mr-2"
-              />
-              Guardar y añadir otra
-            </label>
+          <div className="sticky bottom-0 bg-background p-4 border-t flex flex-wrap justify-between gap-3">
+            <div>
+              {!isNewTransaction && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDeleteClick}
+                  disabled={isSubmitting}
+                  className="flex items-center gap-1"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Eliminar</span>
+                </Button>
+              )}
+            </div>
             
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancelar
-            </Button>
-            
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Guardando...' : isNewTransaction ? 'Crear' : 'Guardar'}
-            </Button>
+            <div className="flex items-center gap-3 ml-auto">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={saveAndAddAnother}
+                  onChange={e => setSaveAndAddAnother(e.target.checked)}
+                  className="mr-2"
+                />
+                Guardar y añadir otra
+              </label>
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </Button>
+              
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Guardando...' : isNewTransaction ? 'Crear' : 'Guardar'}
+              </Button>
+            </div>
           </div>
         </form>
       </div>

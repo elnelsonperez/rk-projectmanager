@@ -3,8 +3,9 @@ import { useTransactions } from '../../hooks/useTransactions'
 import { Transaction } from '../../hooks/useTransactions'
 import { formatCurrency } from '../../utils/formatters'
 import { DataTable } from '../ui/data-table'
-import { PlusSquare, Paperclip } from 'lucide-react'
+import { PlusSquare, Paperclip, FilterX } from 'lucide-react'
 import { Button } from '../ui/button'
+import { useState } from 'react'
 
 type TransactionWithProjectItem = Transaction & { 
   project_items: { item_name: string } | null 
@@ -15,8 +16,11 @@ interface TransactionsTableProps {
   onEditTransaction: (transaction: TransactionWithProjectItem) => void
 }
 
+type TransactionType = 'all' | 'expense' | 'income'
+
 export function TransactionsTable({ projectId, onEditTransaction }: TransactionsTableProps) {
   const { data: transactions, isLoading } = useTransactions(projectId)
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState<TransactionType>('all')
   
   const columnHelper = createColumnHelper<TransactionWithProjectItem>()
   
@@ -73,7 +77,7 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
         const isIncome = amount < 0;
         return (
           <span className={isIncome ? 'text-green-800' : ''}>
-            {isIncome ? 'Ingreso: ' : ''}{formatCurrency(Math.abs(amount))}
+            {isIncome ? 'Ingreso: ' : ''}{formatCurrency(amount)}
           </span>
         );
       },
@@ -85,7 +89,7 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
         const amount = info.getValue();
         const isIncome = amount < 0;
         return isIncome 
-          ? <span className="text-green-800">{formatCurrency(Math.abs(amount))}</span>
+          ? <span className="text-green-800">{formatCurrency(amount)}</span>
           : formatCurrency(amount);
       },
     }),
@@ -155,9 +159,9 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
         )}</div>
         {/* Total income */}
         <div className="text-green-800">Ingresos: {formatCurrency(
-          Math.abs(transactions
+          transactions
             .filter(t => t.amount < 0)
-            .reduce((sum, item) => sum + (item.amount || 0), 0))
+            .reduce((sum, item) => sum + (item.amount || 0), 0)
         )}</div>
         {/* Net total */}
         <div className="mt-1 pt-1 border-t">Neto: {formatCurrency(
@@ -175,9 +179,9 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
         )}</div>
         {/* Total client income */}
         <div className="text-green-800">Ingresos: {formatCurrency(
-          Math.abs(transactions
+          transactions
             .filter(t => (t.client_facing_amount || 0) < 0)
-            .reduce((sum, item) => sum + (item.client_facing_amount || 0), 0))
+            .reduce((sum, item) => sum + (item.client_facing_amount || 0), 0)
         )}</div>
         {/* Net client total */}
         <div className="mt-1 pt-1 border-t">Neto: {formatCurrency(
@@ -189,9 +193,61 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
     </>
   ) : null;
 
+  // Filter data based on transaction type
+  const filteredData = transactions?.filter(transaction => {
+    if (transactionTypeFilter === 'all') return true;
+    if (transactionTypeFilter === 'income') return transaction.amount < 0;
+    if (transactionTypeFilter === 'expense') return transaction.amount >= 0;
+    return true;
+  }) || [];
+  
+  // Create transaction type filter buttons
+  const renderTransactionTypeFilter = () => (
+    <div className="flex items-center space-x-2">
+      <span className="text-xs font-medium">Filtrar:</span>
+      <div className="flex bg-muted/30 rounded-md p-0.5">
+        <Button
+          variant={transactionTypeFilter === 'all' ? 'default' : 'ghost'}
+          size="sm"
+          className={`text-xs h-7 px-2 rounded ${transactionTypeFilter === 'all' ? '' : 'hover:bg-muted'}`}
+          onClick={() => setTransactionTypeFilter('all')}
+        >
+          Todos
+        </Button>
+        <Button
+          variant={transactionTypeFilter === 'expense' ? 'default' : 'ghost'}
+          size="sm"
+          className={`text-xs h-7 px-2 rounded ${transactionTypeFilter === 'expense' ? '' : 'hover:bg-muted'}`}
+          onClick={() => setTransactionTypeFilter('expense')}
+        >
+          Gastos
+        </Button>
+        <Button
+          variant={transactionTypeFilter === 'income' ? 'default' : 'ghost'}
+          size="sm"
+          className={`text-xs h-7 px-2 rounded ${transactionTypeFilter === 'income' ? '' : 'hover:bg-muted'}`}
+          onClick={() => setTransactionTypeFilter('income')}
+        >
+          Ingresos
+        </Button>
+        {transactionTypeFilter !== 'all' && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-xs h-7 w-7 p-0 ml-1"
+            onClick={() => setTransactionTypeFilter('all')}
+            title="Limpiar filtro"
+          >
+            <FilterX className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <DataTable
-      data={transactions || []}
+      data={filteredData}
       columns={columns}
       isLoading={isLoading}
       onEditRow={onEditTransaction}
@@ -205,15 +261,18 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
       initialColumnVisibility={initialColumnVisibility}
       defaultSorting={defaultSorting}
       renderTableHeader={({ columnSelector }) => (
-        <div className="flex justify-between items-center">
-          <Button 
-            size="sm" 
-            onClick={() => onEditTransaction({} as TransactionWithProjectItem)}
-            className="flex gap-1 items-center"
-          >
-            <PlusSquare className="h-3.5 w-3.5" />
-            <span>Añadir Transacción</span>
-          </Button>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div className="flex flex-col xs:flex-row gap-2 items-start xs:items-center">
+            <Button 
+              size="sm" 
+              onClick={() => onEditTransaction({} as TransactionWithProjectItem)}
+              className="flex gap-1 items-center"
+            >
+              <PlusSquare className="h-3.5 w-3.5" />
+              <span>Añadir Transacción</span>
+            </Button>
+            {renderTransactionTypeFilter()}
+          </div>
           {columnSelector}
         </div>
       )}

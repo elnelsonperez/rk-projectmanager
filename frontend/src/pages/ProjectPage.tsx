@@ -187,32 +187,32 @@ export default function ProjectPage() {
       
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-        <TabsList className="h-12 mb-4 w-full justify-start border-b rounded-none p-0 bg-transparent">
-          <div title="Ver artículos del proyecto">
+        <TabsList className="h-auto mb-4 w-full border-b rounded-none p-0 bg-transparent flex flex-wrap overflow-x-auto">
+          <div title="Ver artículos del proyecto" className="flex-none">
             <TabsTrigger 
               value="items" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-6"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-4 sm:px-6 whitespace-nowrap"
             >
-              <Package className="h-4 w-4 mr-2" />
-              Artículos
+              <Package className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="truncate">Artículos</span>
             </TabsTrigger>
           </div>
-          <div title="Ver transacciones del proyecto">
+          <div title="Ver transacciones del proyecto" className="flex-none">
             <TabsTrigger 
               value="transactions" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-6"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-4 sm:px-6 whitespace-nowrap"
             >
-              <Receipt className="h-4 w-4 mr-2" />
-              Transacciones
+              <Receipt className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="truncate">Transacciones</span>
             </TabsTrigger>
           </div>
-          <div title="Ver dashboard con estadísticas del proyecto">
+          <div title="Ver dashboard con estadísticas del proyecto" className="flex-none">
             <TabsTrigger 
               value="dashboard" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-6"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-4 sm:px-6 whitespace-nowrap"
             >
-              <LayoutDashboard className="h-4 w-4 mr-2" />
-              Dashboard
+              <LayoutDashboard className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="truncate">Dashboard</span>
             </TabsTrigger>
           </div>
         </TabsList>
