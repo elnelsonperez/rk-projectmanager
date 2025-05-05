@@ -84,12 +84,21 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                 }
                 title={project.name}
               >
-                {collapsed ? (
-                  <div className="w-6 h-6 flex items-center justify-center bg-muted rounded-full text-xs font-medium">
-                    {project.name.charAt(0)}
-                  </div>
-                ) : (
-                  project.name
+                {({ isActive }) => (
+                  <>
+                    {collapsed ? (
+                      <div className={cn(
+                        "w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium",
+                        isActive 
+                          ? "bg-primary-foreground text-primary" // White background with dark text for active items
+                          : "bg-muted text-foreground" // Gray background with normal text for inactive items
+                      )}>
+                        {project.name.charAt(0)}
+                      </div>
+                    ) : (
+                      project.name
+                    )}
+                  </>
                 )}
               </NavLink>
             ))

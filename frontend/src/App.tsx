@@ -8,6 +8,7 @@ import ProjectPage from './pages/ProjectPage'
 import NewProjectPage from './pages/NewProjectPage'
 import EditProjectPage from './pages/EditProjectPage'
 import ProjectReportPage from './pages/ProjectReportPage'
+import { ToastContainer } from './components/ui/toast'
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -35,6 +36,7 @@ function App() {
             </Route>
           </Route>
         </Routes>
+        <ToastContainer />
       </Router>
     </QueryClientProvider>
   )

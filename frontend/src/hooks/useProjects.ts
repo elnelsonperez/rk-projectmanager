@@ -87,3 +87,24 @@ export function useUpdateProject() {
     },
   })
 }
+
+// Delete a project
+export function useDeleteProject() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (projectId: number) => {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId)
+      
+      if (error) throw error
+      return projectId
+    },
+    onSuccess: (deletedProjectId) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['projects', String(deletedProjectId)] })
+    },
+  })
+}
