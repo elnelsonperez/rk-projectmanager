@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useCreateTransaction, useUpdateTransaction, Transaction } from '../../hooks/useTransactions'
-import { useProjectItems } from '../../hooks/useProjectItems'
+import { useProjectItems, useProjectItem } from '../../hooks/useProjectItems'
 import { useTransactionAttachment } from '../../hooks/useTransactionAttachment'
+import { useProjectItemBudgetGuidance } from '../../hooks/useProjectItemTransactions'
 import { Button } from '../ui/button'
 import { FileUploader } from '../ui/file-uploader'
 import { toast } from '../ui/toast'
 import { ComboboxObject } from '../ui/ComboboxObject'
+import { CurrencyInput } from '../ui/CurrencyInput'
+import { BudgetGuidance } from './BudgetGuidance'
 
 interface TransactionModalProps {
   isOpen: boolean
@@ -68,6 +71,28 @@ export function TransactionModal({
     name: 'transactionType',
     defaultValue: 'expense'
   })
+  
+  // Watch project_item_id for budget guidance
+  const selectedProjectItemId = useWatch({
+    control,
+    name: 'project_item_id'
+  }) as number | undefined
+  
+  // Fetch selected project item details if needed
+  const { data: selectedProjectItem } = useProjectItem(selectedProjectItemId)
+  
+  // Get budget guidance for the selected project item
+  const budgetInfo = useProjectItemBudgetGuidance(
+    selectedProjectItemId,
+    projectId,
+    selectedProjectItem,
+    transaction?.id // Pass current transaction ID to avoid double-counting
+  )
+  
+  // Function to apply recommended amount
+  const applyRecommendedAmount = (amount: number) => {
+    setValue('client_facing_amount', amount)
+  }
   
   // Set default description when switching to income type
   useEffect(() => {
@@ -282,22 +307,15 @@ export function TransactionModal({
             
             <div className={`grid grid-cols-1 ${transactionType === 'income' ? '' : 'md:grid-cols-2'} gap-4`}>
               <div className="space-y-2">
-                <label htmlFor="amount" className="block font-medium">
-                  {transactionType === 'income' ? 'Monto (Ingreso)' : 'Monto'} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
+                <CurrencyInput
                   id="amount"
-                  step="0.01"
-                  {...register('amount', { 
+                  label={`${transactionType === 'income' ? 'Monto (Ingreso)' : 'Monto'} *`}
+                  registration={register('amount', { 
                     required: 'El monto es obligatorio',
                     valueAsNumber: true,
                   })}
-                  className="w-full p-2 border rounded-md"
+                  error={errors.amount?.message}
                 />
-                {errors.amount && (
-                  <p className="text-red-500 text-sm">{errors.amount.message}</p>
-                )}
                 {transactionType === 'income' && (
                   <p className="text-xs text-muted-foreground mt-1">
                     Para transacciones de ingreso, este monto será registrado como un pago del cliente.
@@ -308,18 +326,29 @@ export function TransactionModal({
               {/* Only show client amount field for expense transactions */}
               {transactionType !== 'income' && (
                 <div className="space-y-2">
-                  <label htmlFor="client_facing_amount" className="block font-medium">
-                    Monto Cliente
-                  </label>
-                  <input
-                    type="number"
+                  <CurrencyInput
                     id="client_facing_amount"
-                    step="0.01"
-                    {...register('client_facing_amount', { 
+                    label="Monto Cliente"
+                    registration={register('client_facing_amount', { 
                       valueAsNumber: true
                     })}
-                    className="w-full p-2 border rounded-md"
+                    className={selectedProjectItemId && budgetInfo?.isOverBudget ? 'border-red-300' : ''}
                   />
+                  
+                  {/* Show budget guidance when a project item is selected */}
+                  {selectedProjectItemId && budgetInfo && (
+                    <BudgetGuidance 
+                      budgetInfo={budgetInfo} 
+                      onApplyRecommended={applyRecommendedAmount}
+                    />
+                  )}
+                  
+                  {/* General help text when no project item is selected */}
+                  {!selectedProjectItemId && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Seleccione un artículo de proyecto para ver recomendaciones de presupuesto.
+                    </p>
+                  )}
                 </div>
               )}
             </div>

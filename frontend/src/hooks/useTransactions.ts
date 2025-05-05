@@ -73,8 +73,9 @@ export function useCreateTransaction() {
       if (error) throw error
       return data as Transaction
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['transactions', data.project_id] })
+    onSuccess: () => {
+      // Invalidate all transaction queries
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
     },
   })
 }
@@ -95,9 +96,9 @@ export function useUpdateTransaction() {
       if (error) throw error
       return data as Transaction
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['transactions', data.project_id] })
-      queryClient.invalidateQueries({ queryKey: ['transactions', 'detail', data.id] })
+    onSuccess: () => {
+      // Invalidate all transaction queries
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
     },
   })
 }
@@ -116,10 +117,9 @@ export function useDeleteTransaction() {
       if (error) throw error
       return { id, projectId }
     },
-    onSuccess: ({ projectId }) => {
-      if (projectId) {
-        queryClient.invalidateQueries({ queryKey: ['transactions', projectId] })
-      }
+    onSuccess: () => {
+      // Invalidate all transaction queries
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
     },
   })
 }
