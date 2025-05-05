@@ -75,3 +75,32 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+/* WYSIWYG Editor styles */
+.rsw-ce ul {
+  list-style: disc;
+  padding-left: 2em;
+}
+
+.rsw-ce ol {
+  list-style: decimal;
+  padding-left: 2em;
+}
+
+/* Print view notes styling */
+.notes-content ul {
+  list-style: disc;
+  padding-left: 2em;
+}
+
+.notes-content ol {
+  list-style: decimal;
+  padding-left: 2em;
+}
+
+/* Report table cell with wrapping text */
+.wrap-text {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  max-width: 250px;
+}

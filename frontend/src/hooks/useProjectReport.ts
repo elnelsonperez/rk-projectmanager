@@ -5,6 +5,7 @@ export type ReportItem = {
   category: string;
   area: string | null;
   item_name: string;
+  description: string | null;
   estimated_cost: number | null;
   actual_cost: number | null;
   difference_percentage: number | null;
