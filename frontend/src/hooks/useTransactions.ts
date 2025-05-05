@@ -38,6 +38,32 @@ export function useTransactions(projectId: number | undefined | null) {
   })
 }
 
+// Calculate total income for a project (negative amount transactions)
+export function useProjectIncome(projectId: number | undefined | null) {
+  return useQuery({
+    queryKey: ['transactions', 'income', projectId],
+    queryFn: async () => {
+      if (!projectId) return 0
+      
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('amount')
+        .eq('project_id', projectId)
+        .lt('amount', 0) // Only negative amounts (income)
+
+      if (error) throw error
+      
+      // Calculate total income (convert negative values to positive for display)
+      const totalIncome = data.reduce((sum, transaction) => {
+        return sum + Math.abs(transaction.amount)
+      }, 0)
+      
+      return totalIncome
+    },
+    enabled: !!projectId,
+  })
+}
+
 // Fetch a single transaction
 export function useTransaction(id: number | undefined) {
   return useQuery({

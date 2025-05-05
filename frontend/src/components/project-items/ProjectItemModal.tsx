@@ -21,12 +21,11 @@ export function ProjectItemModal({
   item,
   onClose
 }: ProjectItemModalProps) {
-  const [saveAndAddAnother, setSaveAndAddAnother] = useState(true)
+  const isNewItem = !item?.id
+  const [saveAndAddAnother, setSaveAndAddAnother] = useState(isNewItem)
   const createItem = useCreateProjectItem()
   const updateItem = useUpdateProjectItem()
   const { data: areas = [] } = useProjectAreas(projectId)
-  
-  const isNewItem = !item?.id
   
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     defaultValues: isNewItem

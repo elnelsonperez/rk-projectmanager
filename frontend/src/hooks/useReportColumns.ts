@@ -34,7 +34,7 @@ export const useReportColumns = () => {
     },
     { 
       id: 'amount_paid', 
-      label: 'Pagado', 
+      label: 'Abonado', 
       visible: true, 
       render: (item) => formatCurrency(item.amount_paid) 
     },

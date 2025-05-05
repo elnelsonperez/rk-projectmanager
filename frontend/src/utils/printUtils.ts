@@ -171,7 +171,10 @@ export function generateTableContent(
     actual_cost: number;
     amount_paid: number;
     pending_to_pay: number;
-  }
+  },
+  totalIncome: number = 0,
+  showIncomeRow: boolean = true,
+  showBalanceRow: boolean = true
 ): string {
   let tableContent = '';
   
@@ -224,7 +227,42 @@ export function generateTableContent(
       tableContent += '<td></td>';
     }
   });
-  tableContent += '</tr></tbody>';
+  tableContent += '</tr>';
+  
+  // Add income row
+  if (showIncomeRow) {
+    tableContent += '<tr class="total-row" style="background-color: rgba(0, 200, 0, 0.07) !important;">';
+    visibleCols.forEach((col, colIndex) => {
+      if (colIndex === 0) {
+        tableContent += '<td>INGRESOS DEL CLIENTE</td>';
+      } else if (col.id === 'actual_cost') {
+        tableContent += `<td class="numeric">${formatCurrency(totalIncome)}</td>`;
+      } else {
+        tableContent += '<td></td>';
+      }
+    });
+    tableContent += '</tr>';
+  }
+  
+  // Add remaining balance row
+  if (showBalanceRow) {
+    const remainingBalance = totalIncome - grandTotals.actual_cost;
+    const balanceClass = remainingBalance < 0 ? 'color: #e53e3e !important;' : 'color: #38a169 !important;';
+    
+    tableContent += '<tr class="total-row" style="background-color: rgba(0, 100, 200, 0.07) !important;">';
+    visibleCols.forEach((col, colIndex) => {
+      if (colIndex === 0) {
+        tableContent += '<td>BALANCE RESTANTE</td>';
+      } else if (col.id === 'actual_cost') {
+        tableContent += `<td class="numeric" style="${balanceClass}">${formatCurrency(remainingBalance)}</td>`;
+      } else {
+        tableContent += '<td></td>';
+      }
+    });
+    tableContent += '</tr>';
+  }
+  
+  tableContent += '</tbody>';
   
   return tableContent;
 }

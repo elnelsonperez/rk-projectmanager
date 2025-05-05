@@ -18,12 +18,18 @@ interface ReportTableProps {
     amount_paid: number;
     pending_to_pay: number;
   };
+  totalIncome?: number;
+  showIncomeRow?: boolean;
+  showBalanceRow?: boolean;
 }
 
 const ReportTable: React.FC<ReportTableProps> = ({
   visibleColumns,
   groupedData,
-  grandTotals
+  grandTotals,
+  totalIncome = 0,
+  showIncomeRow = true,
+  showBalanceRow = true
 }) => {
   // Identify numeric columns for styling
   const numericColumns = ['estimated_cost', 'actual_cost', 'amount_paid', 'pending_to_pay', 'difference_percentage'];
@@ -144,6 +150,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                   );
                 } else if (['estimated_cost', 'actual_cost', 'amount_paid', 'pending_to_pay'].includes(col.id)) {
                   // Show totals for numeric columns
+                  // For the Costo Actual column, also show the TOTAL GENERAL value in bold
                   return (
                     <td 
                       key={`total-${colIndex}`} 
@@ -165,6 +172,91 @@ const ReportTable: React.FC<ReportTableProps> = ({
                 }
               })}
             </tr>
+            
+            {/* Income row */}
+            {showIncomeRow && (
+              <tr className="bg-green-50">
+                {visibleColumns.map((col, colIndex) => {
+                  const style = {
+                    borderRight: colIndex === visibleColumns.length - 1 ? 'none' : '1px solid var(--border)'
+                  };
+                  
+                  if (colIndex === 0) {
+                    return (
+                      <td 
+                        key={`income-${colIndex}`} 
+                        className="px-3 py-2 whitespace-nowrap text-xs font-bold"
+                        style={style}
+                      >
+                        INGRESOS DEL CLIENTE
+                      </td>
+                    );
+                  } else if (col.id === 'actual_cost') {
+                    return (
+                      <td 
+                        key={`income-${colIndex}`} 
+                        className="px-3 py-2 whitespace-nowrap text-xs font-bold text-right"
+                        style={style}
+                      >
+                        {formatCurrency(totalIncome)}
+                      </td>
+                    );
+                  } else {
+                    return (
+                      <td 
+                        key={`income-${colIndex}`} 
+                        className="px-3 py-2 text-xs"
+                        style={style}
+                      ></td>
+                    );
+                  }
+                })}
+              </tr>
+            )}
+            
+            {/* Balance row */}
+            {showBalanceRow && (
+              <tr className="bg-blue-50">
+                {visibleColumns.map((col, colIndex) => {
+                  const style = {
+                    borderRight: colIndex === visibleColumns.length - 1 ? 'none' : '1px solid var(--border)',
+                    borderTop: '1px solid #999'
+                  };
+                  
+                  if (colIndex === 0) {
+                    return (
+                      <td 
+                        key={`balance-${colIndex}`} 
+                        className="px-3 py-2 whitespace-nowrap text-xs font-bold"
+                        style={style}
+                      >
+                        BALANCE RESTANTE
+                      </td>
+                    );
+                  } else if (col.id === 'actual_cost') {
+                    // Calculate remaining balance: income - expenses
+                      const remainingBalance = totalIncome - grandTotals.actual_cost;
+                    return (
+                      <td 
+                        key={`balance-${colIndex}`} 
+                        className={`px-3 py-2 whitespace-nowrap text-xs font-bold text-right ${remainingBalance < 0 ? 'text-red-600' : 'text-green-600'}`}
+                        style={style}
+                      >
+                        {formatCurrency(remainingBalance)}
+                      </td>
+                    );
+                  } else {
+                    return (
+                      <td 
+                        key={`balance-${colIndex}`} 
+                        className="px-3 py-2 text-xs"
+                        style={style}
+                      ></td>
+                    );
+                  }
+                })}
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -28,7 +28,8 @@ export function TransactionModal({
   transaction,
   onClose
 }: TransactionModalProps) {
-  const [saveAndAddAnother, setSaveAndAddAnother] = useState(true)
+  const isNewTransaction = !transaction?.id
+  const [saveAndAddAnother, setSaveAndAddAnother] = useState(isNewTransaction)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const createTransaction = useCreateTransaction()
   const updateTransaction = useUpdateTransaction()
@@ -40,8 +41,6 @@ export function TransactionModal({
     uploadProgress, 
     uploadError 
   } = useTransactionAttachment()
-  
-  const isNewTransaction = !transaction?.id
   
   const { register, handleSubmit, reset, control, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     defaultValues: isNewTransaction

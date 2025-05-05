@@ -7,6 +7,7 @@ import {
   calculateGrandTotals 
 } from '../hooks/useProjectReport'
 import { useReportColumns } from '../hooks/useReportColumns'
+import { useProjectIncome } from '../hooks/useTransactions'
 import { Button } from '../components/ui/button'
 import { Spinner } from '../components/ui/spinner'
 import { useState } from 'react'
@@ -18,16 +19,20 @@ import { generateTableContent, openPrintWindow } from '../utils/printUtils'
 
 export default function ProjectReportPage() {
   const { projectId } = useParams<{ projectId: string }>()
+  const parsedProjectId = projectId ? parseInt(projectId) : undefined
   const { data: project } = useProject(projectId)
   const [reportNotes, setReportNotes] = useState('')
+  const [showIncomeRow, setShowIncomeRow] = useState(true)
+  const [showBalanceRow, setShowBalanceRow] = useState(true)
   
   // Use column configuration hook
   const { columnConfig, toggleColumn, visibleColumns } = useReportColumns();
   
   // Fetch report data
-  const { data: reportData, isLoading, error } = useProjectReport(
-    projectId ? parseInt(projectId) : undefined
-  )
+  const { data: reportData, isLoading, error } = useProjectReport(parsedProjectId)
+  
+  // Fetch income data (negative amount transactions)
+  const { data: totalIncome = 0, isLoading: isLoadingIncome } = useProjectIncome(parsedProjectId)
   
   // Group data by area for subtotals
   const groupedData = useMemo(() => {
@@ -45,13 +50,20 @@ export default function ProjectReportPage() {
     if (!reportData) return;
     
     const projectName = project?.name || `Proyecto ${projectId}`;
-    const tableContent = generateTableContent(visibleColumns, groupedData, grandTotals);
+    const tableContent = generateTableContent(
+      visibleColumns, 
+      groupedData, 
+      grandTotals, 
+      totalIncome,
+      showIncomeRow,
+      showBalanceRow
+    );
     
     openPrintWindow(projectName, logoPlaceholder, reportNotes, tableContent);
   }
   
   // Loading state
-  if (isLoading) {
+  if (isLoading || isLoadingIncome) {
     return (
       <div className="flex justify-center p-12">
         <Spinner size="lg" />
@@ -107,11 +119,45 @@ export default function ProjectReportPage() {
         </div>
       </div>
       
-      {/* Column configuration section */}
-      <ColumnSelector 
-        columnConfig={columnConfig} 
-        onToggleColumn={toggleColumn} 
-      />
+      {/* Column and summary rows configuration section */}
+      <div className="mb-4">
+        <h3 className="text-lg font-medium mb-2">Configuración del reporte</h3>
+        
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex-1">
+            <h4 className="text-sm font-medium mb-2">Columnas</h4>
+            <ColumnSelector 
+              columnConfig={columnConfig} 
+              onToggleColumn={toggleColumn} 
+            />
+          </div>
+          
+          <div className="lg:w-64">
+            <h4 className="text-sm font-medium mb-2">Filas de resumen</h4>
+            <div className="space-y-2 border rounded-md p-3 bg-muted/10">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={showIncomeRow}
+                  onChange={(e) => setShowIncomeRow(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                <span className="text-sm">Mostrar ingresos del cliente</span>
+              </label>
+              
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={showBalanceRow}
+                  onChange={(e) => setShowBalanceRow(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                <span className="text-sm">Mostrar balance restante</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
       
       {/* Notes editor section */}
       <NotesEditor 
@@ -124,6 +170,9 @@ export default function ProjectReportPage() {
         visibleColumns={visibleColumns}
         groupedData={groupedData}
         grandTotals={grandTotals}
+        totalIncome={totalIncome}
+        showIncomeRow={showIncomeRow}
+        showBalanceRow={showBalanceRow}
       />
     </div>
   )
