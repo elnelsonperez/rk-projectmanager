@@ -7,7 +7,7 @@ export const useReportColumns = () => {
   const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>([
     { id: 'category', label: 'Categoría', visible: true, render: (item) => item.category || '-' },
     { id: 'area', label: 'Área', visible: true, render: (item) => item.area || '-' },
-    { id: 'item_name', label: 'Elemento', visible: true, render: (item) => item.item_name },
+    { id: 'item_name', label: 'Artículo', visible: true, render: (item) => item.item_name },
     { 
       id: 'description', 
       label: 'Descripción', 

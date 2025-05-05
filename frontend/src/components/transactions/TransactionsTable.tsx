@@ -3,7 +3,8 @@ import { useTransactions } from '../../hooks/useTransactions'
 import { Transaction } from '../../hooks/useTransactions'
 import { formatCurrency } from '../../utils/formatters'
 import { DataTable } from '../ui/data-table'
-import { Edit } from 'lucide-react'
+import { Edit, PlusSquare } from 'lucide-react'
+import { Button } from '../ui/button'
 
 type TransactionWithProjectItem = Transaction & { 
   project_items: { item_name: string } | null 
@@ -116,6 +117,19 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
       summaryRow={summaryRow}
       initialColumnVisibility={initialColumnVisibility}
       defaultSorting={defaultSorting}
+      renderTableHeader={({ columnSelector }) => (
+        <div className="flex justify-between items-center">
+          <Button 
+            size="sm" 
+            onClick={() => onEditTransaction({} as TransactionWithProjectItem)}
+            className="flex gap-1 items-center"
+          >
+            <PlusSquare className="h-3.5 w-3.5" />
+            <span>Añadir Transacción</span>
+          </Button>
+          {columnSelector}
+        </div>
+      )}
     />
   )
 }

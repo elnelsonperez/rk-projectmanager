@@ -4,6 +4,7 @@ import { ProjectItem } from '../../hooks/useProjectItems'
 import { PlusSquare } from 'lucide-react'
 import { formatCurrency } from '../../utils/formatters'
 import { DataTable } from '../ui/data-table'
+import { Button } from '../ui/button'
 
 type ProjectItemWithSupplier = ProjectItem & { 
   suppliers: { name: string } | null 
@@ -132,6 +133,19 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction }
       }}
       summaryRow={summaryRow}
       initialColumnVisibility={initialColumnVisibility}
+      renderTableHeader={({ columnSelector }) => (
+        <div className="flex justify-between items-center">
+          <Button 
+            size="sm" 
+            onClick={() => onEditItem({} as ProjectItemWithSupplier)}
+            className="flex gap-1 items-center"
+          >
+            <PlusSquare className="h-3.5 w-3.5" />
+            <span>Añadir Artículo</span>
+          </Button>
+          {columnSelector}
+        </div>
+      )}
     />
   )
 }

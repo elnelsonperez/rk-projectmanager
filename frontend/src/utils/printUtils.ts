@@ -75,22 +75,25 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 11px;
   margin-bottom: 20px;
   border: 1px solid #e0e0e0;
 }
 th {
-  background-color: #f5f5f5;
+  background-color: rgba(0, 0, 0, 0.05);
   text-align: left;
-  padding: 8px 6px;
+  padding: 6px;
   border-bottom: 2px solid #ddd;
   border-right: 1px solid #e5e7eb;
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
 }
 td {
-  padding: 6px;
+  padding: 5px 6px;
   border-bottom: 1px solid #ddd;
   border-right: 1px solid #e5e7eb;
+  font-size: 11px;
 }
 th:last-child, td:last-child {
   border-right: none;
@@ -104,11 +107,11 @@ th:last-child, td:last-child {
   max-width: 250px;
 }
 .subtotal-row {
-  background-color: #f5f5f5;
+  background-color: rgba(0, 0, 0, 0.05);
   font-weight: 600;
 }
 .total-row {
-  background-color: #e6f3ff;
+  background-color: rgba(0, 100, 255, 0.07);
   font-weight: bold;
 }
 .double-border-top td {
@@ -128,19 +131,25 @@ th:last-child, td:last-child {
   
   /* Force background colors to print */
   .subtotal-row {
-    background-color: #f5f5f5 !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
   
   .total-row {
-    background-color: #e6f3ff !important;
+    background-color: rgba(0, 100, 255, 0.07) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
   
   th {
-    background-color: #f5f5f5 !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.02) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
