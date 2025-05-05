@@ -2,9 +2,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { Database } from '../types/database.types'
 
-export type Transaction = Database['public']['Tables']['transactions']['Row']
-type TransactionInsert = Database['public']['Tables']['transactions']['Insert']
-type TransactionUpdate = Database['public']['Tables']['transactions']['Update'] & { id: number }
+// Extended Transaction type with attachment_url
+export type Transaction = Database['public']['Tables']['transactions']['Row'] & {
+  attachment_url?: string | null
+}
+
+// Extended Insert type with attachment_url
+type TransactionInsert = Database['public']['Tables']['transactions']['Insert'] & {
+  attachment_url?: string | null
+}
+
+// Extended Update type with attachment_url
+type TransactionUpdate = Database['public']['Tables']['transactions']['Update'] & { 
+  id: number;
+  attachment_url?: string | null 
+}
 
 // Fetch transactions for a specific project
 export function useTransactions(projectId: number | undefined | null) {

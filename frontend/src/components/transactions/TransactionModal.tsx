@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useCreateTransaction, useUpdateTransaction, Transaction } from '../../hooks/useTransactions'
 import { useProjectItems } from '../../hooks/useProjectItems'
+import { useTransactionAttachment } from '../../hooks/useTransactionAttachment'
 import { Button } from '../ui/button'
+import { FileUploader } from '../ui/file-uploader'
 
 interface TransactionModalProps {
   isOpen: boolean
@@ -11,7 +13,9 @@ interface TransactionModalProps {
   onClose: () => void
 }
 
-type FormData = Omit<Transaction, 'id' | 'created_at' | 'updated_at'>
+type FormData = Omit<Transaction, 'id' | 'created_at' | 'updated_at'> & {
+  transactionType: 'expense' | 'income'
+}
 
 export function TransactionModal({
   isOpen,
@@ -20,31 +24,55 @@ export function TransactionModal({
   onClose
 }: TransactionModalProps) {
   const [saveAndAddAnother, setSaveAndAddAnother] = useState(true)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const createTransaction = useCreateTransaction()
   const updateTransaction = useUpdateTransaction()
   const { data: projectItems } = useProjectItems(projectId)
+  const { 
+    handleUpload, 
+    handleRemove, 
+    isUploading, 
+    uploadProgress, 
+    uploadError 
+  } = useTransactionAttachment()
   
   const isNewTransaction = !transaction?.id
   
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, reset, control, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     defaultValues: isNewTransaction
       ? {
           project_id: projectId,
           date: new Date().toISOString().split('T')[0],
           amount: 0,
           payment_method: 'Otros',
+          transactionType: 'expense', // Default to expense
         }
       : {
           project_id: transaction.project_id,
           project_item_id: transaction.project_item_id || undefined,
           date: transaction.date ? new Date(transaction.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          amount: transaction.amount,
-          client_facing_amount: transaction.client_facing_amount || undefined,
+          amount: Math.abs(transaction.amount || 0), // Store absolute value for display
+          client_facing_amount: transaction.client_facing_amount ? Math.abs(transaction.client_facing_amount) : undefined,
           payment_method: transaction.payment_method,
           description: transaction.description || '',
           invoice_receipt_number: transaction.invoice_receipt_number || '',
+          transactionType: transaction.amount < 0 ? 'income' : 'expense', // Determine type based on amount sign
         }
   })
+  
+  // Watch for transaction type changes
+  const transactionType = useWatch({
+    control,
+    name: 'transactionType',
+    defaultValue: 'expense'
+  })
+  
+  // Set default description when switching to income type
+  useEffect(() => {
+    if (transactionType === 'income' && !isSubmitting) {
+      setValue('description', 'Abono por parte del cliente')
+    }
+  }, [transactionType, setValue, isSubmitting])
   
   // Handle escape key to close modal
   useEffect(() => {
@@ -60,18 +88,61 @@ export function TransactionModal({
 
   const onSubmit = async (data: FormData) => {
     try {
+      // Handle transaction type
+      const { transactionType, ...transactionData } = data
+      
+      // Apply negative sign for income transactions
+      const amount = transactionType === 'income' 
+        ? -Math.abs(data.amount) 
+        : Math.abs(data.amount)
+      
+      // For income, set client_facing_amount equal to amount
+      const client_facing_amount = transactionType === 'income'
+        ? amount
+        : data.client_facing_amount
+
+      // Handle file upload if a file was selected
+      let attachmentUrl = transaction?.attachment_url;
+      
+      // If we're removing the existing attachment
+      if (attachmentUrl && !selectedFile) {
+        await handleRemove(attachmentUrl);
+        attachmentUrl = null;
+      }
+      
+      // If we have a new file to upload
+      if (selectedFile) {
+        // Remove existing attachment if there is one
+        if (attachmentUrl) {
+          await handleRemove(attachmentUrl);
+        }
+        
+        // Upload the new file
+        attachmentUrl = await handleUpload(selectedFile);
+      }
+
+      // Prepare the data with the correct sign and attachment
+      const submitData = {
+        ...transactionData,
+        amount,
+        client_facing_amount,
+        attachment_url: attachmentUrl
+      }
+      
       if (isNewTransaction) {
-        await createTransaction.mutateAsync(data)
+        await createTransaction.mutateAsync(submitData)
       } else if (transaction?.id) {
-        await updateTransaction.mutateAsync({ id: transaction.id, ...data })
+        await updateTransaction.mutateAsync({ id: transaction.id, ...submitData })
       }
       
       if (saveAndAddAnother) {
+        setSelectedFile(null);
         reset({
           project_id: projectId,
           date: new Date().toISOString().split('T')[0],
           amount: 0,
           payment_method: 'Otros',
+          transactionType: 'expense', // Reset to expense
         })
       } else {
         onClose()
@@ -105,15 +176,54 @@ export function TransactionModal({
         
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="p-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Transaction Type selector */}
+            <div className="space-y-2">
+              <label className="block font-medium">
+                Tipo de Transacción <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <label 
+                  className={`flex items-center justify-center p-2 border rounded-md cursor-pointer ${
+                    transactionType === 'expense' 
+                      ? 'bg-primary text-primary-foreground border-primary' 
+                      : 'bg-background hover:bg-muted'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    value="expense"
+                    {...register('transactionType')}
+                    className="sr-only"
+                  />
+                  <span>Gasto</span>
+                </label>
+                <label 
+                  className={`flex items-center justify-center p-2 border rounded-md cursor-pointer ${
+                    transactionType === 'income' 
+                      ? 'bg-primary text-primary-foreground border-primary' 
+                      : 'bg-background hover:bg-muted'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    value="income"
+                    {...register('transactionType')}
+                    className="sr-only"
+                  />
+                  <span>Ingreso</span>
+                </label>
+              </div>
+            </div>
+
+            <div className={`grid grid-cols-1 ${transactionType !== 'income' ? 'md:grid-cols-2' : ''} gap-4`}>
               <div className="space-y-2">
                 <label htmlFor="date" className="block font-medium">
-                  Date <span className="text-red-500">*</span>
+                  Fecha <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
                   id="date"
-                  {...register('date', { required: 'Date is required' })}
+                  {...register('date', { required: 'La fecha es obligatoria' })}
                   className="w-full p-2 border rounded-md"
                 />
                 {errors.date && (
@@ -121,52 +231,55 @@ export function TransactionModal({
                 )}
               </div>
               
-              <div className="space-y-2">
-                <label htmlFor="project_item_id" className="block font-medium">
-                  Project Item
-                </label>
-                <select
-                  id="project_item_id"
-                  {...register('project_item_id', { 
-                    valueAsNumber: true
-                  })}
-                  className="w-full p-2 border rounded-md"
-                  defaultValue={transaction?.project_item_id || ""}
-                >
-                  <option value="">No specific item</option>
-                  {projectItems?.map(item => (
-                    <option key={item.id} value={item.id}>
-                      {item.item_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Only show project item field for expense transactions */}
+              {transactionType !== 'income' && (
+                <div className="space-y-2">
+                  <label htmlFor="project_item_id" className="block font-medium">
+                    Artículo del Proyecto
+                  </label>
+                  <select
+                    id="project_item_id"
+                    {...register('project_item_id', { 
+                      valueAsNumber: true
+                    })}
+                    className="w-full p-2 border rounded-md"
+                    defaultValue={transaction?.project_item_id || ""}
+                  >
+                    <option value="">Sin artículo específico</option>
+                    {projectItems?.map(item => (
+                      <option key={item.id} value={item.id}>
+                        {item.item_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
               <label htmlFor="description" className="block font-medium">
-                Description
+                Descripción
               </label>
               <textarea
                 id="description"
                 {...register('description')}
                 rows={2}
                 className="w-full p-2 border rounded-md"
-                placeholder="What was this transaction for?"
+                placeholder="¿Para qué fue esta transacción?"
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={`grid grid-cols-1 ${transactionType === 'income' ? '' : 'md:grid-cols-2'} gap-4`}>
               <div className="space-y-2">
                 <label htmlFor="amount" className="block font-medium">
-                  Amount <span className="text-red-500">*</span>
+                  {transactionType === 'income' ? 'Monto (Ingreso)' : 'Monto'} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
                   id="amount"
                   step="0.01"
                   {...register('amount', { 
-                    required: 'Amount is required',
+                    required: 'El monto es obligatorio',
                     valueAsNumber: true,
                   })}
                   className="w-full p-2 border rounded-md"
@@ -174,45 +287,53 @@ export function TransactionModal({
                 {errors.amount && (
                   <p className="text-red-500 text-sm">{errors.amount.message}</p>
                 )}
+                {transactionType === 'income' && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Para transacciones de ingreso, este monto será registrado como un pago del cliente.
+                  </p>
+                )}
               </div>
               
-              <div className="space-y-2">
-                <label htmlFor="client_facing_amount" className="block font-medium">
-                  Client Amount
-                </label>
-                <input
-                  type="number"
-                  id="client_facing_amount"
-                  step="0.01"
-                  {...register('client_facing_amount', { 
-                    valueAsNumber: true
-                  })}
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
+              {/* Only show client amount field for expense transactions */}
+              {transactionType !== 'income' && (
+                <div className="space-y-2">
+                  <label htmlFor="client_facing_amount" className="block font-medium">
+                    Monto Cliente
+                  </label>
+                  <input
+                    type="number"
+                    id="client_facing_amount"
+                    step="0.01"
+                    {...register('client_facing_amount', { 
+                      valueAsNumber: true
+                    })}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+              )}
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="payment_method" className="block font-medium">
-                  Payment Method <span className="text-red-500">*</span>
+                  Método de Pago <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="payment_method"
-                  {...register('payment_method', { required: 'Payment method is required' })}
+                  {...register('payment_method', { required: 'El método de pago es obligatorio' })}
                   className="w-full p-2 border rounded-md"
                 >
-                  <option value="Efectivo">Cash</option>
-                  <option value="Tarjeta">Card</option>
-                  <option value="Transferencia">Transfer</option>
-                  <option value="Cheque">Check</option>
-                  <option value="Otros">Other</option>
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Tarjeta">Tarjeta</option>
+                  <option value="Transferencia">Transferencia</option>
+                  <option value="Cheque">Cheque</option>
+                  <option value="Otros">Otros</option>
                 </select>
               </div>
               
               <div className="space-y-2">
                 <label htmlFor="invoice_receipt_number" className="block font-medium">
-                  Invoice/Receipt #
+                  Factura/Recibo #
                 </label>
                 <input
                   id="invoice_receipt_number"
@@ -221,6 +342,19 @@ export function TransactionModal({
                 />
               </div>
             </div>
+            
+            {/* File attachment */}
+            <FileUploader
+              label="Adjuntar comprobante"
+              onFileSelected={setSelectedFile}
+              initialFileUrl={transaction?.attachment_url || null}
+              onRemoveFile={() => setSelectedFile(null)}
+              isUploading={isUploading}
+              uploadProgress={uploadProgress}
+              error={uploadError}
+              accept="application/pdf,image/*"
+              disabled={isSubmitting}
+            />
           </div>
           
           <div className="sticky bottom-0 bg-background p-4 border-t flex flex-wrap justify-end gap-3">

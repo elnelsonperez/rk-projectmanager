@@ -256,6 +256,7 @@ export type Database = {
           category: string
           area: string
           item_name: string
+          description: string
           estimated_cost: number
           actual_cost: number
           difference_percentage: number
