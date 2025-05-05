@@ -84,7 +84,7 @@ export function TabsContent({ value, children, className }: TabsContentProps) {
   return (
     <div
       className={cn(
-        "mt-2 rounded-md border p-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "mt-2",
         className
       )}
     >

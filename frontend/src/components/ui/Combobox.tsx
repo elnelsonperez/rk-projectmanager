@@ -102,7 +102,7 @@ export const Combobox: React.FC<ComboboxProps> = ({
             registration.onChange(e);
           }}
           onFocus={() => setIsOpen(true)}
-          className={`w-full p-2 pr-8 border rounded-md ${error ? 'border-red-500' : ''}`}
+          className={`w-full h-[44px] p-2 pr-8 border rounded-md ${error ? 'border-red-500' : ''}`}
           placeholder={placeholder}
           autoComplete="off"
         />

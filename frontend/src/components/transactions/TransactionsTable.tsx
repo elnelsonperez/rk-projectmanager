@@ -3,7 +3,7 @@ import { useTransactions } from '../../hooks/useTransactions'
 import { Transaction } from '../../hooks/useTransactions'
 import { formatCurrency } from '../../utils/formatters'
 import { DataTable } from '../ui/data-table'
-import { Edit, PlusSquare, Paperclip } from 'lucide-react'
+import { PlusSquare, Paperclip } from 'lucide-react'
 import { Button } from '../ui/button'
 
 type TransactionWithProjectItem = Transaction & { 
@@ -195,9 +195,7 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
       columns={columns}
       isLoading={isLoading}
       onEditRow={onEditTransaction}
-      onRowActionClick={onEditTransaction}
-      actionIcon={<Edit className="h-3 w-3" />}
-      actionTooltip="Editar transacción"
+      /* Removing onRowActionClick to avoid duplicate edit buttons */
       noDataMessage="No se encontraron transacciones. Añade tu primera transacción para comenzar."
       noDataAction={{
         label: "Añadir Primera Transacción",

@@ -14,14 +14,14 @@ import { Transaction } from '../hooks/useTransactions'
 import { formatCurrency } from '../utils/formatters'
 import { ConfirmationDialog } from '../components/ui/confirmation-dialog'
 import { DropdownMenu } from '../components/ui/dropdown-menu'
-import { Trash2, Edit, FileText } from 'lucide-react'
+import { Trash2, Edit, FileText, LayoutDashboard, Package, Receipt, Calendar, Tag, DollarSign } from 'lucide-react'
 
 export default function ProjectPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
   const { data: project, isLoading, error } = useProject(projectId)
   const deleteProject = useDeleteProject()
-  const [activeTab, setActiveTab] = useState('items')
+  const [activeTab, setActiveTab] = useState('items') // Default to 'items' tab, options: 'items', 'transactions', 'dashboard'
   
   // Delete confirmation state
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
@@ -121,90 +121,113 @@ export default function ProjectPage() {
   }
   
   return (
-    <div className="space-y-4 relative">
+    <div className="relative">
       {isDeleting && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-50 rounded-lg">
           <Spinner />
         </div>
       )}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <div>
-          <h1 className="text-2xl font-bold">{project.name}</h1>
-          {project.client_id && (
-            <p className="text-xs text-muted-foreground">
-              Cliente: {project.client_id}
-            </p>
-          )}
+      
+      {/* Project Header with Action Buttons */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 py-4 border-b mb-4">
+        <div className="flex-1">
+          <div className="flex flex-wrap gap-2 sm:gap-4 text-xs text-muted-foreground">
+            {project.client_id && (
+              <div className="flex items-center gap-1" title="Cliente del proyecto">
+                <span>Cliente: {project.client_id}</span>
+              </div>
+            )}
+            
+            <div className="flex items-center gap-1" title="Estado del proyecto">
+              <Tag className="h-3 w-3" />
+              <span>{project.status || 'Sin estado'}</span>
+            </div>
+            
+            <div className="flex items-center gap-1" title="Fecha estimada de finalización">
+              <Calendar className="h-3 w-3" />
+              <span>
+                {project.estimated_completion ? new Date(project.estimated_completion).toLocaleDateString() : 'Sin fecha'}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-1" title="Presupuesto del proyecto">
+              <DollarSign className="h-3 w-3" />
+              <span>
+                {project.budget ? formatCurrency(project.budget) : 'Sin presupuesto'}
+              </span>
+            </div>
+          </div>
         </div>
         
-        <div className="flex gap-1 relative">
-          <Button size="sm" variant="outline" onClick={handleEditProject}>
+        <div className="flex gap-2 flex-wrap justify-end">
+          <Button variant="outline" size="sm" onClick={handleEditProject} title="Editar información del proyecto">
             <Edit className="h-3.5 w-3.5 mr-1" />
-            Editar
+            <span className="text-sm">Editar</span>
           </Button>
           <Link to={`/projects/${projectId}/report`}>
-            <Button size="sm" variant="outline">
+            <Button variant="outline" size="sm" title="Ver reporte del proyecto">
               <FileText className="h-3.5 w-3.5 mr-1" />
-              Reporte
+              <span className="text-sm">Reporte</span>
             </Button>
           </Link>
-          <DropdownMenu
-            items={[
-              {
-                label: 'Eliminar proyecto',
-                onClick: handleDeleteClick,
-                variant: 'destructive',
-                icon: <Trash2 className="h-3.5 w-3.5" />
-              }
-            ]}
-          />
+          <div title="Más opciones">
+            <DropdownMenu
+              items={[
+                {
+                  label: "Eliminar Proyecto",
+                  onClick: handleDeleteClick,
+                  variant: "destructive",
+                  icon: <Trash2 className="h-4 w-4" />
+                }
+              ]}
+            />
+          </div>
         </div>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-muted/20 rounded-lg p-3">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground">Estado:</span>
-          <span className="text-sm">{project.status || 'No establecido'}</span>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground">Inicio:</span>
-          <span className="text-sm">
-            {project.start_date ? new Date(project.start_date).toLocaleDateString() : 'No establecido'}
-          </span>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground">Fin est.:</span>
-          <span className="text-sm">
-            {project.estimated_completion ? new Date(project.estimated_completion).toLocaleDateString() : 'No establecido'}
-          </span>
-        </div>
-        
-        <div className="flex items-center gap-2 sm:justify-end">
-          <span className="text-sm font-medium text-muted-foreground">Presupuesto:</span>
-          <span className="text-sm font-semibold">
-            {project.budget ? formatCurrency(project.budget) : 'No establecido'}
-          </span>
-        </div>
-      </div>
-      
-      {project.notes && (
-        <div className="bg-muted/20 rounded-lg p-3">
-          <details className="text-sm">
-            <summary className="font-medium cursor-pointer">Notas</summary>
-            <p className="whitespace-pre-line mt-2">{project.notes}</p>
-          </details>
-        </div>
-      )}
-      
+      {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-        <TabsList className="h-9 mb-2">
-          <TabsTrigger value="items" className="text-sm px-3 py-1.5">Artículos</TabsTrigger>
-          <TabsTrigger value="transactions" className="text-sm px-3 py-1.5">Transacciones</TabsTrigger>
+        <TabsList className="h-12 mb-4 w-full justify-start border-b rounded-none p-0 bg-transparent">
+          <div title="Ver artículos del proyecto">
+            <TabsTrigger 
+              value="items" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-6"
+            >
+              <Package className="h-4 w-4 mr-2" />
+              Artículos
+            </TabsTrigger>
+          </div>
+          <div title="Ver transacciones del proyecto">
+            <TabsTrigger 
+              value="transactions" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-6"
+            >
+              <Receipt className="h-4 w-4 mr-2" />
+              Transacciones
+            </TabsTrigger>
+          </div>
+          <div title="Ver dashboard con estadísticas del proyecto">
+            <TabsTrigger 
+              value="dashboard" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-6"
+            >
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              Dashboard
+            </TabsTrigger>
+          </div>
         </TabsList>
         
-        <TabsContent value="items" className="p-0 border-0 mt-2">
+        {/* Project Notes - Only shown when project has notes */}
+        {project.notes && (
+          <div className="bg-muted/20 rounded-lg p-3 mb-4">
+            <details className="text-sm">
+              <summary className="font-medium cursor-pointer">Notas del proyecto</summary>
+              <p className="whitespace-pre-line mt-2">{project.notes}</p>
+            </details>
+          </div>
+        )}
+        
+        <TabsContent value="items" className="p-0 mt-2">
           <ProjectItemsTable 
             projectId={Number(projectId)}
             onEditItem={handleEditItem}
@@ -221,7 +244,7 @@ export default function ProjectPage() {
           )}
         </TabsContent>
         
-        <TabsContent value="transactions" className="p-0 border-0 mt-2">
+        <TabsContent value="transactions" className="p-0 mt-2">
           <TransactionsTable 
             projectId={Number(projectId)}
             onEditTransaction={handleEditTransaction}
@@ -235,6 +258,16 @@ export default function ProjectPage() {
               onClose={() => setTransactionModalOpen(false)}
             />
           )}
+        </TabsContent>
+        
+        <TabsContent value="dashboard" className="p-0 mt-2">
+          <div className="flex flex-col items-center justify-center p-12 bg-muted/10 rounded-lg border border-dashed">
+            <LayoutDashboard className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">Dashboard en construcción</h3>
+            <p className="text-muted-foreground text-center max-w-md">
+              El dashboard mostrará resúmenes y estadísticas del proyecto próximamente.
+            </p>
+          </div>
         </TabsContent>
       </Tabs>
       

@@ -5,6 +5,8 @@ import { useProjectItems } from '../../hooks/useProjectItems'
 import { useTransactionAttachment } from '../../hooks/useTransactionAttachment'
 import { Button } from '../ui/button'
 import { FileUploader } from '../ui/file-uploader'
+import { toast } from '../ui/toast'
+import { ComboboxObject } from '../ui/ComboboxObject'
 
 interface TransactionModalProps {
   isOpen: boolean
@@ -131,8 +133,16 @@ export function TransactionModal({
       
       if (isNewTransaction) {
         await createTransaction.mutateAsync(submitData)
+        toast({ 
+          message: `Transacción de ${transactionType === 'income' ? 'ingreso' : 'gasto'} creada exitosamente`, 
+          type: 'success' 
+        })
       } else if (transaction?.id) {
         await updateTransaction.mutateAsync({ id: transaction.id, ...submitData })
+        toast({ 
+          message: `Transacción actualizada exitosamente`, 
+          type: 'success'
+        })
       }
       
       if (saveAndAddAnother) {
@@ -149,6 +159,10 @@ export function TransactionModal({
       }
     } catch (error) {
       console.error('Error saving transaction:', error)
+      toast({ 
+        message: `Error al guardar la transacción: ${error instanceof Error ? error.message : 'Error desconocido'}`, 
+        type: 'error'
+      })
     }
   }
   
@@ -234,24 +248,21 @@ export function TransactionModal({
               {/* Only show project item field for expense transactions */}
               {transactionType !== 'income' && (
                 <div className="space-y-2">
-                  <label htmlFor="project_item_id" className="block font-medium">
-                    Artículo del Proyecto
-                  </label>
-                  <select
+                  <ComboboxObject
                     id="project_item_id"
-                    {...register('project_item_id', { 
+                    label="Artículo del Proyecto"
+                    registration={register('project_item_id', { 
                       valueAsNumber: true
                     })}
-                    className="w-full p-2 border rounded-md"
-                    defaultValue={transaction?.project_item_id || ""}
-                  >
-                    <option value="">Sin artículo específico</option>
-                    {projectItems?.map(item => (
-                      <option key={item.id} value={item.id}>
-                        {item.item_name}
-                      </option>
-                    ))}
-                  </select>
+                    options={(projectItems || []).map(item => ({
+                      value: item.id,
+                      label: item.item_name,
+                      description: item.description || (item.area ? `Área: ${item.area}` : undefined)
+                    }))}
+                    defaultValue={transaction?.project_item_id || undefined}
+                    placeholder="Buscar por nombre o descripción..."
+                    emptyOption="Sin artículo específico"
+                  />
                 </div>
               )}
             </div>

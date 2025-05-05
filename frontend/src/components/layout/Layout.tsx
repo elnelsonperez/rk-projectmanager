@@ -3,10 +3,12 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Sheet, SheetContent } from '../ui/sheet'
 import { Button } from '../ui/button'
+import { useProjectStore } from '../../store/projectStore'
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
+  const currentProject = useProjectStore(state => state.currentProject)
   
   return (
     <div className="h-screen flex flex-col">
@@ -33,7 +35,9 @@ export default function Layout() {
             <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
         </Button>
-        <h1 className="text-xl font-bold ml-2">Gestor de Proyectos</h1>
+        <h1 className="text-xl font-bold ml-2">
+          {currentProject ? currentProject.name : "Gestor de Proyectos"}
+        </h1>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -57,7 +61,7 @@ export default function Layout() {
         
         {/* Main content */}
         <div className="flex-1 overflow-auto">
-          <div className="container mx-auto px-3 py-4 sm:py-6 max-w-full sm:max-w-7xl">
+          <div className="container mx-auto px-6 py-4 sm:py-6 max-w-[1600px]">
             <Outlet />
           </div>
         </div>

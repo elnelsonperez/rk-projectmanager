@@ -4,6 +4,7 @@ import { useCreateProjectItem, useUpdateProjectItem, ProjectItem, useProjectArea
 import { Button } from '../ui/button'
 import { CurrencyInput } from '../ui/CurrencyInput'
 import { Combobox } from '../ui/Combobox'
+import { toast } from '../ui/toast'
 
 interface ProjectItemModalProps {
   isOpen: boolean
@@ -72,8 +73,16 @@ export function ProjectItemModal({
     try {
       if (isNewItem) {
         await createItem.mutateAsync(data)
+        toast({ 
+          message: `"${data.item_name}" ha sido creado exitosamente`, 
+          type: 'success' 
+        })
       } else if (item?.id) {
         await updateItem.mutateAsync({ id: item.id, ...data })
+        toast({ 
+          message: `"${data.item_name}" ha sido actualizado exitosamente`, 
+          type: 'success'
+        })
       }
       
       if (saveAndAddAnother) {
@@ -97,6 +106,10 @@ export function ProjectItemModal({
       }
     } catch (error) {
       console.error('Error saving project item:', error)
+      toast({ 
+        message: `Error al guardar el artículo: ${error instanceof Error ? error.message : 'Error desconocido'}`, 
+        type: 'error'
+      })
     }
   }
   
