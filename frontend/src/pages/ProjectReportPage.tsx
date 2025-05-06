@@ -24,8 +24,8 @@ export default function ProjectReportPage() {
   const parsedProjectId = projectId ? parseInt(projectId) : undefined
   const { data: project } = useProject(projectId)
   const [reportNotes, setReportNotes] = useState('')
-  const [showIncomeRow, setShowIncomeRow] = useState(true)
-  const [showBalanceRow, setShowBalanceRow] = useState(true)
+  const [showIncomeRow, setShowIncomeRow] = useState(false)
+  const [showBalanceRow, setShowBalanceRow] = useState(false)
   const [showConfig, setShowConfig] = useState(false)
   
   // Filter state
