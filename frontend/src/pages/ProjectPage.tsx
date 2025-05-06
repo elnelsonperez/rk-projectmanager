@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useEffect, useState, useMemo } from 'react'
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useProject, useDeleteProject } from '../hooks/useProjects'
 import { useProjectStore } from '../store/projectStore'
 import { Button } from '../components/ui/button'
@@ -15,12 +15,29 @@ import { ConfirmationDialog } from '../components/ui/confirmation-dialog'
 import { DropdownMenu } from '../components/ui/dropdown-menu'
 import { Trash2, Edit, FileText, LayoutDashboard, Package, Receipt, History } from 'lucide-react'
 
+// Valid tab values
+const VALID_TABS = ['items', 'transactions', 'dashboard'] as const;
+type TabValue = typeof VALID_TABS[number];
+
 export default function ProjectPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { data: project, isLoading, error } = useProject(projectId)
   const deleteProject = useDeleteProject()
-  const [activeTab, setActiveTab] = useState('items') // Default to 'items' tab, options: 'items', 'transactions', 'dashboard'
+  
+  // Get active tab from URL search params (defaulting to 'items' if not valid)
+  const activeTab = useMemo(() => {
+    const tabParam = searchParams.get('tab');
+    return (tabParam && VALID_TABS.includes(tabParam as TabValue)) 
+      ? (tabParam as TabValue) 
+      : 'items';
+  }, [searchParams])
+  
+  // Function to change tabs by updating URL search params
+  const handleTabChange = (tab: string) => {
+    setSearchParams({ ...Object.fromEntries(searchParams.entries()), tab });
+  }
   
   // Delete confirmation state
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
@@ -89,7 +106,8 @@ export default function ProjectPage() {
       project_item_id: item.id,
     } as Transaction)
     setTransactionModalOpen(true)
-    setActiveTab('transactions')
+    // Switch to transactions tab via URL
+    handleTabChange('transactions')
   }
   
   const handleEditTransaction = (transaction: Transaction) => {
@@ -128,7 +146,7 @@ export default function ProjectPage() {
       )}
       
       {/* Main Content Tabs with Action Buttons */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-2">
         <div className="border-b mb-4">
           <div className="flex justify-between items-center pb-0">
             <div className="overflow-x-auto no-scrollbar">
