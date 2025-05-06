@@ -4,9 +4,6 @@ import { formatCurrency } from './formatters';
 
 // CSS for print view
 const printStyles = `
-@media print {
-  @page { margin: 0; }
-}
 body {
   font-family: Arial, sans-serif;
   margin: 1cm;
