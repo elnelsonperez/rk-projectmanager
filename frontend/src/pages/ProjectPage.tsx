@@ -11,10 +11,9 @@ import { ProjectItem } from '../hooks/useProjectItems'
 import { TransactionsTable } from '../components/transactions/TransactionsTable'
 import { TransactionModal } from '../components/transactions/TransactionModal'
 import { Transaction } from '../hooks/useTransactions'
-import { formatCurrency } from '../utils/formatters'
 import { ConfirmationDialog } from '../components/ui/confirmation-dialog'
 import { DropdownMenu } from '../components/ui/dropdown-menu'
-import { Trash2, Edit, FileText, LayoutDashboard, Package, Receipt, Calendar, Tag, DollarSign } from 'lucide-react'
+import { Trash2, Edit, FileText, LayoutDashboard, Package, Receipt } from 'lucide-react'
 
 export default function ProjectPage() {
   const { projectId } = useParams<{ projectId: string }>()

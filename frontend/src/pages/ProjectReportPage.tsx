@@ -4,21 +4,20 @@ import { useProject } from '../hooks/useProjects'
 import { 
   useProjectReport, 
   groupReportDataByArea, 
-  calculateGrandTotals,
-  ReportItem 
+  calculateGrandTotals
 } from '../hooks/useProjectReport'
 import { useReportColumns } from '../hooks/useReportColumns'
 import { useProjectIncome } from '../hooks/useTransactions'
 import { Button } from '../components/ui/button'
 import { Spinner } from '../components/ui/spinner'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import logoRk from '../assets/logork.jpg'
 import ReportTable from '../components/reports/ReportTable'
 import ColumnSelector from '../components/reports/ColumnSelector'
 import Editor from 'react-simple-wysiwyg'
 import { generateTableContent, openPrintWindow } from '../utils/printUtils'
 import { X, Filter, Settings, ChevronDown, ChevronUp } from 'lucide-react'
-import { ComboboxObject, ComboboxOption } from '../components/ui/ComboboxObject'
+import { ComboboxObject } from '../components/ui/ComboboxObject'
 
 export default function ProjectReportPage() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -119,7 +118,6 @@ export default function ProjectReportPage() {
       totalIncome,
       showIncomeRow,
       showBalanceRow,
-      filterSubtitle // Pass filter information to print
     );
     
     openPrintWindow(projectName, logoRk, reportNotes, tableContent, filterSubtitle);

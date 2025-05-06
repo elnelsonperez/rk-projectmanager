@@ -186,8 +186,7 @@ export function generateTableContent(
   },
   totalIncome: number = 0,
   showIncomeRow: boolean = true,
-  showBalanceRow: boolean = true,
-  filterSubtitle: string = ''
+  showBalanceRow: boolean = true
 ): string {
   let tableContent = '';
   
