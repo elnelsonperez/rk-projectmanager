@@ -21,6 +21,7 @@ interface ReportTableProps {
   totalIncome?: number;
   showIncomeRow?: boolean;
   showBalanceRow?: boolean;
+  filterSubtitle?: string;
 }
 
 const ReportTable: React.FC<ReportTableProps> = ({
@@ -29,13 +30,19 @@ const ReportTable: React.FC<ReportTableProps> = ({
   grandTotals,
   totalIncome = 0,
   showIncomeRow = true,
-  showBalanceRow = true
+  showBalanceRow = true,
+  filterSubtitle = ''
 }) => {
   // Identify numeric columns for styling
   const numericColumns = ['estimated_cost', 'actual_cost', 'amount_paid', 'pending_to_pay', 'difference_percentage'];
   
   return (
     <div className="border rounded-lg overflow-hidden">
+      {filterSubtitle && (
+        <div className="bg-muted/20 text-xs p-2 border-b border-border">
+          <strong>Filtro:</strong> {filterSubtitle}
+        </div>
+      )}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-border">
           <thead className="bg-muted/50">

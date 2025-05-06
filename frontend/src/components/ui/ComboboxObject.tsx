@@ -46,18 +46,28 @@ export const ComboboxObject: React.FC<ComboboxObjectProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Update filtered options when input changes
+  // Initialize options when they change
   useEffect(() => {
+    // Always initialize with all options
+    setFilteredOptions(options);
+  }, [options]);
+  
+  // Filter options based on input when dropdown is open
+  useEffect(() => {
+    if (!isOpen) return;
+    
     if (inputValue.trim() === '') {
+      // Show all options if input is empty and dropdown is open
       setFilteredOptions(options);
     } else {
+      // Filter options based on input
       const filtered = options.filter(option => 
         option.label.toLowerCase().includes(inputValue.toLowerCase()) ||
         (option.description && option.description.toLowerCase().includes(inputValue.toLowerCase()))
       );
       setFilteredOptions(filtered);
     }
-  }, [inputValue, options]);
+  }, [inputValue, options, isOpen]);
 
   // Handle clicking outside to close dropdown
   useEffect(() => {
@@ -177,7 +187,11 @@ export const ComboboxObject: React.FC<ComboboxObjectProps> = ({
             }
             if (registration) registration.onChange(e);
           }}
-          onFocus={() => !disabled && setIsOpen(true)}
+          onFocus={() => {
+            if (!disabled) {
+              setIsOpen(true);
+            }
+          }}
           className={`w-full h-[44px] p-2 pr-8 border rounded-md ${error ? 'border-red-500' : ''} ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
           placeholder={placeholder}
           autoComplete="off"

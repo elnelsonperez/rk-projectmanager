@@ -11,6 +11,8 @@ export type ReportItem = {
   difference_percentage: number | null;
   amount_paid: number;
   pending_to_pay: number;
+  supplier_id: number | null;
+  supplier_name: string | null;
 };
 
 export type AreaSubtotal = {

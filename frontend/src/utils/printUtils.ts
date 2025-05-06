@@ -17,26 +17,36 @@ body {
   margin: 0 auto;
 }
 .report-header {
-  text-align: center;
-  margin-bottom: 30px;
+  text-align: left;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
 }
 .logo {
-  max-width: 200px;
+  max-width: 120px;
   height: auto;
+  margin-right: 20px;
+}
+.report-header-text {
+  flex: 1;
 }
 .project-name {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: bold;
-  margin: 15px 0 5px;
+  margin: 0 0 5px;
+  text-align: left;
 }
 .report-date {
   font-size: 14px;
   color: #666;
-  margin-bottom: 15px;
+  margin: 0;
+  text-align: left;
 }
 .notes {
-  margin: 15px 0;
-  padding: 10px;
+  margin: 10px 0 15px;
+  padding: 8px 10px;
   background-color: #f9f9f9;
   border-radius: 4px;
   border-left: 3px solid #ddd;
@@ -176,7 +186,8 @@ export function generateTableContent(
   },
   totalIncome: number = 0,
   showIncomeRow: boolean = true,
-  showBalanceRow: boolean = true
+  showBalanceRow: boolean = true,
+  filterSubtitle: string = ''
 ): string {
   let tableContent = '';
   
@@ -238,7 +249,7 @@ export function generateTableContent(
       if (colIndex === 0) {
         tableContent += '<td>INGRESOS DEL CLIENTE</td>';
       } else if (col.id === 'actual_cost') {
-        tableContent += `<td class="numeric">${formatCurrency(totalIncome)}</td>`;
+        tableContent += `<td class="numeric">${formatCurrency(-totalIncome)}</td>`;
       } else {
         tableContent += '<td></td>';
       }
@@ -274,7 +285,8 @@ export function openPrintWindow(
   projectName: string,
   logoUrl: string,
   reportNotes: string,
-  tableContent: string
+  tableContent: string,
+  filterSubtitle: string = ''
 ): void {
   // Format current date
   const currentDate = new Date().toLocaleDateString('es-ES', {
@@ -299,14 +311,17 @@ export function openPrintWindow(
       <body>
         <div class="report-container">
           <div class="report-header">
-            <img src="${logoUrl}" alt="Company Logo" class="logo" />
-            <h1 class="project-name">${projectName}</h1>
-            <p class="report-date">${currentDate}</p>
+            <img src="${logoUrl}" alt="RKArtSide" class="logo" />
+            <div class="report-header-text">
+              <h1 class="project-name">${projectName}</h1>
+              <p class="report-date">${currentDate}</p>
+              ${filterSubtitle ? `<p class="filter-subtitle" style="font-size: 13px; margin-top: 3px; color: #505050;"><strong>Filtro:</strong> ${filterSubtitle}</p>` : ''}
+            </div>
           </div>
           
           ${reportNotes ? `
-            <div class="notes mb-6">
-              <h3 class="text-lg font-medium mb-2">Notas</h3>
+            <div class="notes">
+              <h3 style="font-size: 14px; margin: 0 0 5px; font-weight: 600;">Notas</h3>
               <div class="notes-content">
                 ${reportNotes}
               </div>
