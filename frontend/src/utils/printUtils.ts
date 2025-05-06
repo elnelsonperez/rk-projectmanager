@@ -4,10 +4,12 @@ import { formatCurrency } from './formatters';
 
 // CSS for print view
 const printStyles = `
+@media print {
+  @page { margin: 0; }
+}
 body {
   font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 20px;
+  margin: 1cm;
   color: #333;
 }
 .report-container {
@@ -246,7 +248,7 @@ export function generateTableContent(
   
   // Add remaining balance row
   if (showBalanceRow) {
-    const remainingBalance = totalIncome - grandTotals.actual_cost;
+    const remainingBalance = grandTotals.actual_cost - totalIncome;
     const balanceClass = remainingBalance < 0 ? 'color: #e53e3e !important;' : 'color: #38a169 !important;';
     
     tableContent += '<tr class="total-row" style="background-color: rgba(0, 100, 200, 0.07) !important;">';

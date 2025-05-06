@@ -112,7 +112,6 @@ export function useUpdateProjectItem() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projectItems', data.project_id] })
-      queryClient.invalidateQueries({ queryKey: ['projectItems', 'detail', data.id] })
     },
   })
 }

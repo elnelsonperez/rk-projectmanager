@@ -40,6 +40,9 @@ export function useProjectReport(projectId: number | undefined) {
       return getProjectReport(projectId) as Promise<ReportItem[]>;
     },
     enabled: !!projectId,
+    staleTime: 0, // Data is always stale, forcing a refetch
+    refetchOnMount: true, // Refetch whenever component mounts
+    refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 }
 

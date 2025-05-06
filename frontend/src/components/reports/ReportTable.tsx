@@ -198,7 +198,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                         className="px-3 py-2 whitespace-nowrap text-xs font-bold text-right"
                         style={style}
                       >
-                        {formatCurrency(totalIncome)}
+                        {formatCurrency(-totalIncome)}
                       </td>
                     );
                   } else {
@@ -234,8 +234,8 @@ const ReportTable: React.FC<ReportTableProps> = ({
                       </td>
                     );
                   } else if (col.id === 'actual_cost') {
-                    // Calculate remaining balance: income - expenses
-                      const remainingBalance = totalIncome - grandTotals.actual_cost;
+                    // Calculate remaining balance
+                      const remainingBalance = grandTotals.actual_cost - totalIncome ;
                     return (
                       <td 
                         key={`balance-${colIndex}`} 
