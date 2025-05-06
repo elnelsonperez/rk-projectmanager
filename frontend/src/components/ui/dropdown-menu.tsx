@@ -68,7 +68,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
         <div 
           ref={menuRef}
           className={cn(
-            "absolute z-10 mt-1 bg-background shadow-lg rounded-md py-1 text-sm overflow-hidden border border-border min-w-[160px]",
+            "absolute z-50 mt-1 bg-background shadow-lg rounded-md py-1 text-sm overflow-hidden border border-border min-w-[160px]",
             align === 'right' ? "right-0" : "left-0"
           )}
         >

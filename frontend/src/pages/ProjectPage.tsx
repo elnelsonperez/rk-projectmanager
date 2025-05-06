@@ -128,96 +128,68 @@ export default function ProjectPage() {
         </div>
       )}
       
-      {/* Project Header with Action Buttons */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 py-4 border-b mb-4">
-        <div className="flex-1">
-          <div className="hidden sm:flex flex-wrap gap-2 sm:gap-4 text-xs text-muted-foreground">
-            {project.client_id && (
-              <div className="flex items-center gap-1" title="Cliente del proyecto">
-                <span>Cliente: {project.client_id}</span>
-              </div>
-            )}
-            
-            <div className="flex items-center gap-1" title="Estado del proyecto">
-              <Tag className="h-3 w-3" />
-              <span>{project.status || 'Sin estado'}</span>
-            </div>
-            
-            <div className="flex items-center gap-1" title="Fecha estimada de finalización">
-              <Calendar className="h-3 w-3" />
-              <span>
-                {project.estimated_completion ? new Date(project.estimated_completion).toLocaleDateString() : 'Sin fecha'}
-              </span>
-            </div>
-            
-            <div className="flex items-center gap-1" title="Presupuesto del proyecto">
-              <DollarSign className="h-3 w-3" />
-              <span>
-                {project.budget ? formatCurrency(project.budget) : 'Sin presupuesto'}
-              </span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex gap-2 flex-wrap justify-end">
-          <Link to={`/projects/${projectId}/report`}>
-            <Button variant="outline" size="sm" title="Ver reporte del proyecto">
-              <FileText className="h-3.5 w-3.5 mr-1" />
-              <span className="text-sm">Reporte</span>
-            </Button>
-          </Link>
-          <div className="flex items-center" title="Más opciones">
-            <DropdownMenu
-              items={[
-                {
-                  label: "Editar Proyecto",
-                  onClick: handleEditProject,
-                  icon: <Edit className="h-4 w-4" />
-                },
-                {
-                  label: "Eliminar Proyecto",
-                  onClick: handleDeleteClick,
-                  variant: "destructive",
-                  icon: <Trash2 className="h-4 w-4" />
-                }
-              ]}
-            />
-          </div>
-        </div>
-      </div>
-      
-      {/* Main Content Tabs */}
+      {/* Main Content Tabs with Action Buttons */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-        <div className="overflow-x-auto no-scrollbar border-b mb-4">
-          <TabsList className="h-auto w-full rounded-none p-0 bg-transparent flex min-w-max">
-            <div title="Ver artículos del proyecto">
-              <TabsTrigger 
-                value="items" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-4 sm:px-6 whitespace-nowrap"
-              >
-                <Package className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                <span className="truncate">Artículos</span>
-              </TabsTrigger>
+        <div className="border-b mb-4">
+          <div className="flex justify-between items-center pb-0">
+            <div className="overflow-x-auto no-scrollbar">
+              <TabsList className="h-auto rounded-none p-0 bg-transparent flex min-w-max">
+                <div title="Ver artículos del proyecto">
+                  <TabsTrigger 
+                    value="items" 
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-4 sm:px-6 whitespace-nowrap"
+                  >
+                    <Package className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Artículos</span>
+                  </TabsTrigger>
+                </div>
+                <div title="Ver transacciones del proyecto">
+                  <TabsTrigger 
+                    value="transactions" 
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-4 sm:px-6 whitespace-nowrap"
+                  >
+                    <Receipt className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Transacciones</span>
+                  </TabsTrigger>
+                </div>
+                <div title="Ver dashboard con estadísticas del proyecto">
+                  <TabsTrigger 
+                    value="dashboard" 
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-4 sm:px-6 whitespace-nowrap"
+                  >
+                    <LayoutDashboard className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Dashboard</span>
+                  </TabsTrigger>
+                </div>
+              </TabsList>
             </div>
-            <div title="Ver transacciones del proyecto">
-              <TabsTrigger 
-                value="transactions" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-4 sm:px-6 whitespace-nowrap"
-              >
-                <Receipt className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                <span className="truncate">Transacciones</span>
-              </TabsTrigger>
+            
+            <div className="flex gap-2 items-center shrink-0 ml-2 z-20">
+              <Link to={`/projects/${projectId}/report`}>
+                <Button variant="outline" size="sm" title="Ver reporte del proyecto" className="h-8">
+                  <FileText className="h-3.5 w-3.5 mr-1" />
+                  <span className="text-sm hidden sm:inline">Reporte</span>
+                </Button>
+              </Link>
+              <div title="Más opciones" className="relative" style={{ zIndex: 30 }}>
+                <DropdownMenu
+                  items={[
+                    {
+                      label: "Editar Proyecto",
+                      onClick: handleEditProject,
+                      icon: <Edit className="h-4 w-4" />
+                    },
+                    {
+                      label: "Eliminar Proyecto",
+                      onClick: handleDeleteClick,
+                      variant: "destructive",
+                      icon: <Trash2 className="h-4 w-4" />
+                    }
+                  ]}
+                />
+              </div>
             </div>
-            <div title="Ver dashboard con estadísticas del proyecto">
-              <TabsTrigger 
-                value="dashboard" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-4 sm:px-6 whitespace-nowrap"
-              >
-                <LayoutDashboard className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                <span className="truncate">Dashboard</span>
-              </TabsTrigger>
-            </div>
-          </TabsList>
+          </div>
         </div>
         
         {/* Project Notes - Only shown when project has notes */}
