@@ -149,6 +149,7 @@ export type Database = {
           budget: number | null
           client_id: number | null
           created_at: string | null
+          deleted_at: string | null
           estimated_completion: string | null
           id: number
           name: string
@@ -162,6 +163,7 @@ export type Database = {
           budget?: number | null
           client_id?: number | null
           created_at?: string | null
+          deleted_at?: string | null
           estimated_completion?: string | null
           id?: number
           name: string
@@ -175,6 +177,7 @@ export type Database = {
           budget?: number | null
           client_id?: number | null
           created_at?: string | null
+          deleted_at?: string | null
           estimated_completion?: string | null
           id?: number
           name?: string

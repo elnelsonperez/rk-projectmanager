@@ -13,6 +13,7 @@ export function useProjects() {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
+        .is('deleted_at', null) // Only show non-deleted projects
         .order('updated_at', { ascending: false })
 
       if (error) throw error
@@ -35,6 +36,7 @@ export function useProject(id: string | number | undefined) {
         .from('projects')
         .select('*')
         .eq('id', numericId)
+        .is('deleted_at', null) // Only show non-deleted projects
         .single()
 
       if (error) throw error
@@ -110,15 +112,16 @@ export function useUpdateProjectReportNotes() {
   })
 }
 
-// Delete a project
+// Soft delete a project (mark as deleted)
 export function useDeleteProject() {
   const queryClient = useQueryClient()
   
   return useMutation({
     mutationFn: async (projectId: number) => {
+      // Use soft delete instead of hard delete
       const { error } = await supabase
         .from('projects')
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('id', projectId)
       
       if (error) throw error
