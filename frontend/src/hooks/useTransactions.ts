@@ -29,7 +29,7 @@ export function useTransactions(projectId: number | undefined | null) {
         .from('transactions')
         .select('*, project_items(item_name)')
         .eq('project_id', projectId)
-        .order('date', { ascending: false })
+        .order('created_at', { ascending: false })
 
       if (error) throw error
       return data as (Transaction & { project_items: { item_name: string } | null })[]

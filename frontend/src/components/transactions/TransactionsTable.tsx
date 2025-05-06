@@ -139,7 +139,7 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
     'attachment_url': true
   };
 
-  // Default sorting
+  // Default sorting - this just affects the UI table and is secondary to the database sort
   const defaultSorting = [{ id: 'date', desc: true }];
 
   // Create a summary row to display totals
