@@ -88,6 +88,28 @@ export function useUpdateProject() {
   })
 }
 
+// Update just the report notes of a project
+export function useUpdateProjectReportNotes() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async ({ id, report_notes }: { id: number, report_notes: string }) => {
+      const { data, error } = await supabase
+        .from('projects')
+        .update({ report_notes })
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as Project
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['projects', String(data.id)] })
+    },
+  })
+}
+
 // Delete a project
 export function useDeleteProject() {
   const queryClient = useQueryClient()

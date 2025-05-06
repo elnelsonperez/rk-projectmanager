@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { useProject } from '../hooks/useProjects'
+import { useProject, useUpdateProjectReportNotes } from '../hooks/useProjects'
 import { 
   useProjectReport, 
   groupReportDataByArea, 
@@ -10,7 +10,7 @@ import { useReportColumns } from '../hooks/useReportColumns'
 import { useProjectIncome } from '../hooks/useTransactions'
 import { Button } from '../components/ui/button'
 import { Spinner } from '../components/ui/spinner'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import logoRk from '../assets/logork.jpg'
 import ReportTable from '../components/reports/ReportTable'
 import ColumnSelector from '../components/reports/ColumnSelector'
@@ -27,6 +27,7 @@ export default function ProjectReportPage() {
   const [showIncomeRow, setShowIncomeRow] = useState(false)
   const [showBalanceRow, setShowBalanceRow] = useState(false)
   const [showConfig, setShowConfig] = useState(false)
+  const { mutate: updateReportNotes, isPending: isSavingNotes } = useUpdateProjectReportNotes()
   
   // Filter state
   const [selectedArea, setSelectedArea] = useState<string>('')
@@ -40,6 +41,13 @@ export default function ProjectReportPage() {
   
   // Fetch income data (negative amount transactions)
   const { data: totalIncome = 0, isLoading: isLoadingIncome } = useProjectIncome(parsedProjectId)
+  
+  // Load report notes from project data when available
+  useEffect(() => {
+    if (project?.report_notes) {
+      setReportNotes(project.report_notes);
+    }
+  }, [project?.report_notes]);
   
   // Extract unique areas and suppliers for filters
   const { areaOptions, supplierOptions } = useMemo(() => {
@@ -237,7 +245,21 @@ export default function ProjectReportPage() {
           
           {/* Notes editor section */}
           <div>
-            <h3 className="text-lg font-medium mb-2">Notas para el reporte</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-medium">Notas para el reporte</h3>
+              <Button 
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (parsedProjectId) {
+                    updateReportNotes({ id: parsedProjectId, report_notes: reportNotes });
+                  }
+                }}
+                disabled={isSavingNotes || !parsedProjectId}
+              >
+                {isSavingNotes ? 'Guardando...' : 'Guardar notas'}
+              </Button>
+            </div>
             <Editor 
               value={reportNotes} 
               onChange={(e: any) => setReportNotes(e.target.value)}
@@ -250,7 +272,7 @@ export default function ProjectReportPage() {
               }}
             />
             <p className="text-sm text-gray-500 mt-1">
-              Use el editor para dar formato al texto. El contenido HTML será mostrado en el reporte impreso.
+              Use el editor para dar formato al texto. El contenido HTML será guardado con el proyecto y mostrado en el reporte impreso.
             </p>
           </div>
         </div>
