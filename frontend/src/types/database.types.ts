@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action_type: string
+          changed_fields: Json | null
+          created_at: string
+          id: number
+          new_values: Json | null
+          old_values: Json | null
+          project_id: number
+          record_id: number
+          table_name: string
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          changed_fields?: Json | null
+          created_at?: string
+          id?: number
+          new_values?: Json | null
+          old_values?: Json | null
+          project_id: number
+          record_id: number
+          table_name: string
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          changed_fields?: Json | null
+          created_at?: string
+          id?: number
+          new_values?: Json | null
+          old_values?: Json | null
+          project_id?: number
+          record_id?: number
+          table_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           contact_number: string | null
@@ -194,6 +233,7 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          attachment_url: string | null
           client_facing_amount: number | null
           created_at: string | null
           date: string
@@ -207,6 +247,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          attachment_url?: string | null
           client_facing_amount?: number | null
           created_at?: string | null
           date?: string
@@ -220,6 +261,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          attachment_url?: string | null
           client_facing_amount?: number | null
           created_at?: string | null
           date?: string
@@ -253,6 +295,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_audit_logs: {
+        Args: {
+          p_project_id?: number
+          p_start_date?: string
+          p_end_date?: string
+          p_page?: number
+          p_page_size?: number
+        }
+        Returns: {
+          id: number
+          table_name: string
+          record_id: number
+          project_id: number
+          project_name: string
+          action_type: string
+          changed_fields: Json
+          old_values: Json
+          new_values: Json
+          user_id: string
+          user_email: string
+          created_at: string
+          total_count: number
+        }[]
+      }
       get_project_report: {
         Args: { p_project_id: number }
         Returns: {
@@ -265,6 +331,8 @@ export type Database = {
           difference_percentage: number
           amount_paid: number
           pending_to_pay: number
+          supplier_id: number
+          supplier_name: string
         }[]
       }
     }

@@ -16,6 +16,8 @@ interface ComboboxObjectProps {
   error?: string;
   defaultValue?: number | string;
   onSelect?: (value: number | string) => void;
+  onChange?: (value: number | string | undefined) => void;
+  value?: number | string;
   disabled?: boolean;
   emptyOption?: string;
 }
@@ -29,18 +31,23 @@ export const ComboboxObject: React.FC<ComboboxObjectProps> = ({
   error,
   defaultValue,
   onSelect,
+  onChange,
+  value,
   disabled = false,
   emptyOption = "Sin selección"
 }) => {
-  // Find default label from value
-  const getDefaultLabel = () => {
-    if (defaultValue === undefined || defaultValue === null) return '';
-    const option = options.find(opt => opt.value === defaultValue);
+  // Determine initial value (controlled value takes precedence over defaultValue)
+  const initialValue = value !== undefined ? value : defaultValue;
+  
+  // Find label from value
+  const getLabelFromValue = (val: number | string | undefined) => {
+    if (val === undefined || val === null) return '';
+    const option = options.find(opt => opt.value === val);
     return option ? option.label : '';
   };
 
-  const [inputValue, setInputValue] = useState(getDefaultLabel());
-  const [selectedValue, setSelectedValue] = useState<number | string | undefined>(defaultValue);
+  const [inputValue, setInputValue] = useState(getLabelFromValue(initialValue));
+  const [selectedValue, setSelectedValue] = useState<number | string | undefined>(initialValue);
   const [isOpen, setIsOpen] = useState(false);
   const [filteredOptions, setFilteredOptions] = useState<ComboboxOption[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -99,16 +106,31 @@ export const ComboboxObject: React.FC<ComboboxObjectProps> = ({
     };
   }, [options, selectedValue, inputValue]);
 
-  // Update options when options change
+  // Update when value prop changes (controlled component support)
   useEffect(() => {
-    if (defaultValue !== undefined) {
+    if (value !== undefined) {
+      const option = options.find(opt => opt.value === value);
+      if (option) {
+        setInputValue(option.label);
+        setSelectedValue(option.value);
+      } else {
+        // If value is provided but not found in options, clear the input
+        setInputValue('');
+        setSelectedValue(undefined);
+      }
+    }
+  }, [value, options]);
+  
+  // Update options when defaultValue changes (if not controlled)
+  useEffect(() => {
+    if (value === undefined && defaultValue !== undefined) {
       const option = options.find(opt => opt.value === defaultValue);
       if (option) {
         setInputValue(option.label);
         setSelectedValue(option.value);
       }
     }
-  }, [options, defaultValue]);
+  }, [options, defaultValue, value]);
 
   // Handle option selection
   const handleSelectOption = (option: ComboboxOption | null) => {
@@ -116,9 +138,14 @@ export const ComboboxObject: React.FC<ComboboxObjectProps> = ({
       setInputValue(option.label);
       setSelectedValue(option.value);
       
-      // Call onSelect callback if provided
+      // Call onSelect callback if provided (legacy API)
       if (onSelect) {
         onSelect(option.value);
+      }
+      
+      // Call onChange callback if provided (new API)
+      if (onChange) {
+        onChange(option.value);
       }
       
       // Manually trigger onChange for react-hook-form if registration is provided
@@ -137,8 +164,14 @@ export const ComboboxObject: React.FC<ComboboxObjectProps> = ({
       setInputValue('');
       setSelectedValue(undefined);
       
+      // Call onSelect callback if provided (legacy API)
       if (onSelect) {
         onSelect('');
+      }
+      
+      // Call onChange callback if provided (new API)
+      if (onChange) {
+        onChange(undefined);
       }
       
       // Clear the form value if registration is provided

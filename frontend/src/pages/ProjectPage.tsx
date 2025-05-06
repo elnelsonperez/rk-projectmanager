@@ -13,7 +13,7 @@ import { TransactionModal } from '../components/transactions/TransactionModal'
 import { Transaction } from '../hooks/useTransactions'
 import { ConfirmationDialog } from '../components/ui/confirmation-dialog'
 import { DropdownMenu } from '../components/ui/dropdown-menu'
-import { Trash2, Edit, FileText, LayoutDashboard, Package, Receipt } from 'lucide-react'
+import { Trash2, Edit, FileText, LayoutDashboard, Package, Receipt, History } from 'lucide-react'
 
 export default function ProjectPage() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -177,6 +177,11 @@ export default function ProjectPage() {
                       label: "Editar Proyecto",
                       onClick: handleEditProject,
                       icon: <Edit className="h-4 w-4" />
+                    },
+                    {
+                      label: "Registro de Cambios",
+                      onClick: () => navigate(`/projects/${projectId}/audit-logs`),
+                      icon: <History className="h-4 w-4" />
                     },
                     {
                       label: "Eliminar Proyecto",
