@@ -82,7 +82,8 @@ export function TransactionModal({
   // Watch project_item_id for budget guidance
   const selectedProjectItemId = useWatch({
     control,
-    name: 'project_item_id'
+    name: 'project_item_id',
+    defaultValue: transaction?.project_item_id // Set default value from transaction prop
   }) as number | undefined
   
   // Fetch selected project item details if needed
@@ -107,6 +108,13 @@ export function TransactionModal({
       setValue('description', 'Abono por parte del cliente')
     }
   }, [transactionType, setValue, isSubmitting])
+  
+  // Make sure project item ID from transaction is set when the modal opens
+  useEffect(() => {
+    if (transaction?.project_item_id) {
+      setValue('project_item_id', transaction.project_item_id)
+    }
+  }, [transaction?.project_item_id, setValue])
   
   // Handle escape key to close modal
   useEffect(() => {
@@ -225,6 +233,10 @@ export function TransactionModal({
         // Clear the selected file state
         setSelectedFile(null);
         
+        // If transaction was opened with a pre-selected project item (from items table),
+        // preserve that project_item_id
+        const preserveProjectItemId = !isNewTransaction ? undefined : transaction?.project_item_id;
+        
         // Reset the form completely
         reset({
           project_id: projectId,
@@ -232,8 +244,8 @@ export function TransactionModal({
           amount: 0,
           payment_method: 'Otros',
           transactionType: 'expense', // Reset to expense
-          // Make sure these fields are explicitly reset to undefined
-          project_item_id: undefined,
+          // Conditionally preserve project_item_id if it was provided initially
+          project_item_id: preserveProjectItemId,
           client_facing_amount: undefined,
           description: '',
           invoice_receipt_number: '',
