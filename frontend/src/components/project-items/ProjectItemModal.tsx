@@ -57,7 +57,6 @@ export function ProjectItemModal({
           estimated_cost: item.estimated_cost,
           internal_cost: item.internal_cost,
           client_cost:item.client_cost,
-          status: item.status || '',
           notes: item.notes || '',
         }
   })
@@ -140,7 +139,6 @@ export function ProjectItemModal({
           estimated_cost: undefined,
           internal_cost: undefined,
           client_cost: undefined,
-          status: '',
           notes: '',
         })
       } else {
@@ -338,19 +336,6 @@ export function ProjectItemModal({
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="status" className="block font-medium">
-                  Estado
-                </label>
-                <input
-                  id="status"
-                  {...register('status')}
-                  className="w-full p-2 border rounded-md"
-                  placeholder="Ej: Ordenado, Entregado, Instalado"
-                />
-              </div>
-            </div>
             
             <div className="space-y-2">
               <label htmlFor="notes" className="block font-medium">

@@ -71,11 +71,6 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction }
       header: 'Costo Cliente',
       cell: info => formatCurrency(info.getValue()),
     }),
-    columnHelper.accessor('status', {
-      id: 'status', // Explicitly add id to ensure it's defined
-      header: 'Estado',
-      cell: info => info.getValue() || '-',
-    }),
   ]
 
   // Default column visibility
@@ -86,8 +81,7 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction }
     'quantity': true,
     'estimated_cost': true,
     'internal_cost': true,
-    'client_cost': true,
-    'status': true
+    'client_cost': true
   };
 
   // Create a summary row to display totals
@@ -113,7 +107,6 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction }
           items.reduce((sum, item) => sum + (item.client_cost || 0), 0)
         )}
       </td>
-      <td className="px-3 py-2 text-xs text-foreground"></td>
     </>
   ) : null;
 
