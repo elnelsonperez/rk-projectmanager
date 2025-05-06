@@ -108,3 +108,15 @@
 .numeric {
   text-align: right;
 }
+
+/* Hide scrollbar but allow scrolling */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}

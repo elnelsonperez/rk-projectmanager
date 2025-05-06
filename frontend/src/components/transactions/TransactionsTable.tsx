@@ -135,7 +135,7 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
     'amount': true,
     'client_facing_amount': true,
     'payment_method': true,
-    'invoice_receipt_number': true,
+    'invoice_receipt_number': false, // Hide by default
     'attachment_url': true
   };
 
@@ -203,7 +203,7 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
   
   // Create transaction type filter buttons
   const renderTransactionTypeFilter = () => (
-    <div className="flex items-center space-x-2">
+    <div className="hidden md:flex items-center space-x-2">
       <span className="text-xs font-medium">Filtrar:</span>
       <div className="flex bg-muted/30 rounded-md p-0.5">
         <Button
@@ -246,36 +246,48 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
   );
 
   return (
-    <DataTable
-      data={filteredData}
-      columns={columns}
-      isLoading={isLoading}
-      onEditRow={onEditTransaction}
-      /* Removing onRowActionClick to avoid duplicate edit buttons */
-      noDataMessage="No se encontraron transacciones. Añade tu primera transacción para comenzar."
-      noDataAction={{
-        label: "Añadir Primera Transacción",
-        onClick: () => onEditTransaction({} as TransactionWithProjectItem)
-      }}
-      summaryRow={summaryRow}
-      initialColumnVisibility={initialColumnVisibility}
-      defaultSorting={defaultSorting}
-      renderTableHeader={({ columnSelector }) => (
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <Button 
-            size="sm" 
-            onClick={() => onEditTransaction({} as TransactionWithProjectItem)}
-            className="flex gap-1 items-center"
-          >
-            <PlusSquare className="h-3.5 w-3.5" />
-            <span>Añadir Transacción</span>
-          </Button>
-          <div className="flex xs:flex-row gap-4 items-center">
-            {renderTransactionTypeFilter()}
-            {columnSelector}
+    <div className="space-y-2">
+      <DataTable
+        data={filteredData}
+        columns={columns}
+        isLoading={isLoading}
+        onEditRow={onEditTransaction}
+        /* Removing onRowActionClick to avoid duplicate edit buttons */
+        noDataMessage="No se encontraron transacciones. Añade tu primera transacción para comenzar."
+        noDataAction={{
+          label: "Añadir Primera Transacción",
+          onClick: () => onEditTransaction({} as TransactionWithProjectItem)
+        }}
+        summaryRow={summaryRow}
+        initialColumnVisibility={initialColumnVisibility}
+        defaultSorting={defaultSorting}
+        rowClassName={(row) => {
+          // Highlight expense transactions without project_item_id
+          return (!row.project_item_id && row.amount >= 0) ? 'bg-amber-50' : '';
+        }}
+        renderTableHeader={({ columnSelector }) => (
+          <div className="flex flex-row justify-between items-start sm:items-center gap-2">
+            <Button 
+              size="sm" 
+              onClick={() => onEditTransaction({} as TransactionWithProjectItem)}
+              className="flex gap-1 items-center"
+            >
+              <PlusSquare className="h-3.5 w-3.5" />
+              <span>Añadir Transacción</span>
+            </Button>
+            <div className="flex xs:flex-row gap-4 items-center">
+              {renderTransactionTypeFilter()}
+              {columnSelector}
+            </div>
           </div>
+        )}
+      />
+      {filteredData.length > 0 && (
+        <div className="text-xs text-muted-foreground bg-amber-50 px-3 py-2 rounded-sm border border-amber-200 flex items-center">
+          <div className="w-3 h-3 bg-amber-50 border border-amber-200 mr-2"></div>
+          <span>Las filas resaltadas son gastos sin artículo de proyecto asociado</span>
         </div>
       )}
-    />
+    </div>
   )
 }

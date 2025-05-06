@@ -31,6 +31,7 @@ export interface DataTableProps<TData> {
   summaryRow?: React.ReactNode;
   initialColumnVisibility?: VisibilityState;
   renderTableHeader?: (props: { columnSelector: React.ReactNode }) => React.ReactNode;
+  rowClassName?: (row: TData) => string;
 }
 
 export function DataTable<TData>({
@@ -47,6 +48,7 @@ export function DataTable<TData>({
   summaryRow,
   initialColumnVisibility,
   renderTableHeader,
+  rowClassName,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>(defaultSorting);
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
@@ -220,7 +222,7 @@ export function DataTable<TData>({
                     selectedRowIndex === rowIndex
                       ? 'bg-primary/10 hover:bg-primary/20'
                       : ''
-                  }`}
+                  } ${rowClassName ? rowClassName(row.original) : ''}`}
                   onMouseEnter={() => {
                     setSelectedRowIndex(rowIndex);
                   }}
