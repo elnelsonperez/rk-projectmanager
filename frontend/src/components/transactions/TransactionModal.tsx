@@ -37,6 +37,7 @@ export function TransactionModal({
   const isNewTransaction = !transaction?.id
   const [saveAndAddAnother, setSaveAndAddAnother] = useState(isNewTransaction)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [justSubmitted, setJustSubmitted] = useState(false)
   const createTransaction = useCreateTransaction()
   const updateTransaction = useUpdateTransaction()
   const deleteTransaction = useDeleteTransaction()
@@ -218,14 +219,31 @@ export function TransactionModal({
       }
       
       if (saveAndAddAnother) {
+        // Set flag that we just submitted a form with "Save and add another"
+        setJustSubmitted(true);
+        
+        // Clear the selected file state
         setSelectedFile(null);
+        
+        // Reset the form completely
         reset({
           project_id: projectId,
           date: new Date().toISOString().split('T')[0],
           amount: 0,
           payment_method: 'Otros',
           transactionType: 'expense', // Reset to expense
+          // Make sure these fields are explicitly reset to undefined
+          project_item_id: undefined,
+          client_facing_amount: undefined,
+          description: '',
+          invoice_receipt_number: '',
+          attachment_url: null,
         })
+        
+        // Reset the submitted flag after a brief delay to ensure FileUploader rerenders
+        setTimeout(() => {
+          setJustSubmitted(false);
+        }, 100);
       } else {
         onClose()
       }
@@ -453,9 +471,10 @@ export function TransactionModal({
             
             {/* File attachment */}
             <FileUploader
+              key={justSubmitted ? "new-uploader" : "file-uploader"} // Force re-render when submitted
               label="Adjuntar comprobante"
               onFileSelected={setSelectedFile}
-              initialFileUrl={transaction?.attachment_url || null}
+              initialFileUrl={justSubmitted ? null : transaction?.attachment_url || null}
               onRemoveFile={() => setSelectedFile(null)}
               isUploading={isUploading}
               uploadProgress={uploadProgress}
