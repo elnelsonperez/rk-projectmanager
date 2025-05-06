@@ -142,6 +142,15 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
   // Default sorting - this just affects the UI table and is secondary to the database sort
   const defaultSorting = [{ id: 'date', desc: true }];
 
+  // Calculate visible columns to properly set colspan values in the summary row
+  const getVisibleColumnCount = (columnIds: string[]) => {
+    return columnIds.filter(id => {
+      // Use type assertion to safely access initialColumnVisibility with string keys
+      const visibility = initialColumnVisibility as Record<string, boolean>;
+      return visibility[id] !== false;
+    }).length;
+  };
+
   // Create a summary row to display totals
   const summaryRow = transactions && transactions.length > 0 ? (
     <>
@@ -189,7 +198,11 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
         )}</div>
       </td>
       
-      <td colSpan={3} className="px-3 py-2 text-xs text-foreground"></td>
+      {/* Dynamically calculate colspan based on visible columns, +1 for action column */}
+      <td 
+        colSpan={getVisibleColumnCount(['payment_method', 'invoice_receipt_number', 'attachment_url'])}
+        className="px-3 py-2 text-xs text-foreground"
+      ></td>
     </>
   ) : null;
 
