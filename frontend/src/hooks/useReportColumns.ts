@@ -34,9 +34,15 @@ export const useReportColumns = () => {
     },
     { 
       id: 'amount_paid', 
-      label: 'Abonado', 
+      label: 'Abonado',
       visible: true, 
       render: (item) => formatCurrency(item.amount_paid) 
+    },
+    { 
+      id: 'internal_amount_paid', 
+      label: 'Abonado (Interno)', 
+      visible: false, 
+      render: (item) => formatCurrency(item.internal_amount_paid) 
     },
     { 
       id: 'pending_to_pay', 

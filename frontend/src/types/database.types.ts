@@ -298,6 +298,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_active_projects: {
+        Args: { p_client_id?: number }
+        Returns: {
+          budget: number | null
+          client_id: number | null
+          created_at: string | null
+          deleted_at: string | null
+          estimated_completion: string | null
+          id: number
+          name: string
+          notes: string | null
+          report_notes: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["estado_proyecto"]
+          updated_at: string | null
+        }[]
+      }
       get_audit_logs: {
         Args: {
           p_project_id?: number
@@ -336,7 +353,12 @@ export type Database = {
           pending_to_pay: number
           supplier_id: number
           supplier_name: string
+          internal_amount_paid: number
         }[]
+      }
+      soft_delete_project: {
+        Args: { project_id: number }
+        Returns: undefined
       }
     }
     Enums: {

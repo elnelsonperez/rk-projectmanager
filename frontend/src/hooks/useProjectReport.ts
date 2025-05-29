@@ -13,6 +13,7 @@ export type ReportItem = {
   pending_to_pay: number;
   supplier_id: number | null;
   supplier_name: string | null;
+  internal_amount_paid: number;
 };
 
 export type AreaSubtotal = {
