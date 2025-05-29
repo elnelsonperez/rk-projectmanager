@@ -16,6 +16,7 @@ interface ReportTableProps {
     estimated_cost: number;
     actual_cost: number;
     amount_paid: number;
+    internal_amount_paid: number;
     pending_to_pay: number;
   };
   totalIncome?: number;
@@ -34,7 +35,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
   filterSubtitle = ''
 }) => {
   // Identify numeric columns for styling
-  const numericColumns = ['estimated_cost', 'actual_cost', 'amount_paid', 'pending_to_pay', 'difference_percentage'];
+  const numericColumns = ['estimated_cost', 'actual_cost', 'amount_paid', 'internal_amount_paid', 'pending_to_pay', 'difference_percentage'];
   
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -43,16 +44,16 @@ const ReportTable: React.FC<ReportTableProps> = ({
           <strong>Filtro:</strong> {filterSubtitle}
         </div>
       )}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-auto max-h-[80vh] relative">
         <table className="min-w-full divide-y divide-border">
-          <thead className="bg-muted/50">
+          <thead className="bg-muted/50 sticky top-0 z-10 shadow-sm">
             <tr>
               {visibleColumns.map(col => (
                 <th
                   key={col.id}
-                  className="px-3 py-2 text-left text-xs font-semibold text-foreground"
+                  className="px-3 py-2 text-left text-xs font-semibold text-foreground bg-muted/50"
                   style={{ 
-                    borderRight: col === visibleColumns[visibleColumns.length - 1] ? 'none' : '1px solid var(--border)' 
+                    borderRight: col === visibleColumns[visibleColumns.length - 1] ? 'none' : '1px solid var(--border)'
                   }}
                 >
                   {col.label}
@@ -74,10 +75,19 @@ const ReportTable: React.FC<ReportTableProps> = ({
                       const isNumeric = numericColumns.includes(col.id);
                       const isDescription = col.id === 'description';
                       
+                      // Check if this is an amount column with potential highlight
+                      const isAmountPaidColumn = col.id === 'amount_paid' || col.id === 'internal_amount_paid';
+                      
+                      // Determine if we should highlight the cell (amounts differ and both columns are visible)
+                      const shouldHighlight = isAmountPaidColumn && 
+                        item.amount_paid !== item.internal_amount_paid && 
+                        visibleColumns.some(c => c.id === 'amount_paid') && 
+                        visibleColumns.some(c => c.id === 'internal_amount_paid');
+                      
                       return (
                         <td 
                           key={col.id} 
-                          className={`px-3 py-2 text-xs text-foreground ${isDescription ? 'max-w-xs' : 'whitespace-nowrap'} ${isNumeric ? 'text-right' : ''}`}
+                          className={`px-3 py-2 text-xs text-foreground ${isDescription ? 'max-w-xs' : 'whitespace-nowrap'} ${isNumeric ? 'text-right' : ''} ${shouldHighlight ? 'bg-amber-100 dark:bg-amber-950/10' : ''}`}
                           style={{ 
                             borderRight: colIndex === visibleColumns.length - 1 ? 'none' : '1px solid var(--border)' 
                           }}
@@ -106,7 +116,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                           Subtotal: {group.area}
                         </td>
                       );
-                    } else if (['estimated_cost', 'actual_cost', 'amount_paid', 'pending_to_pay'].includes(col.id)) {
+                    } else if (['estimated_cost', 'actual_cost', 'amount_paid', 'internal_amount_paid', 'pending_to_pay'].includes(col.id)) {
                       // Show subtotals for numeric columns
                       return (
                         <td 
@@ -155,7 +165,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                       TOTAL GENERAL
                     </td>
                   );
-                } else if (['estimated_cost', 'actual_cost', 'amount_paid', 'pending_to_pay'].includes(col.id)) {
+                } else if (['estimated_cost', 'actual_cost', 'amount_paid', 'internal_amount_paid', 'pending_to_pay'].includes(col.id)) {
                   // Show totals for numeric columns
                   // For the Costo Actual column, also show the TOTAL GENERAL value in bold
                   return (

@@ -31,6 +31,7 @@ export type GroupedReportData = {
     estimated_cost: number;
     actual_cost: number;
     amount_paid: number;
+    internal_amount_paid: number;
     pending_to_pay: number;
   };
 };
@@ -66,6 +67,7 @@ export function groupReportDataByArea(reportData: ReportItem[]): GroupedReportDa
           estimated_cost: 0,
           actual_cost: 0,
           amount_paid: 0,
+          internal_amount_paid: 0,
           pending_to_pay: 0
         }
       };
@@ -77,6 +79,7 @@ export function groupReportDataByArea(reportData: ReportItem[]): GroupedReportDa
     grouped[area].totals.estimated_cost += item.estimated_cost || 0;
     grouped[area].totals.actual_cost += item.actual_cost || 0;
     grouped[area].totals.amount_paid += item.amount_paid || 0;
+    grouped[area].totals.internal_amount_paid += item.internal_amount_paid || 0;
     grouped[area].totals.pending_to_pay += item.pending_to_pay || 0;
   });
   
@@ -88,6 +91,7 @@ export function calculateGrandTotals(groupedData: GroupedReportData[]): {
   estimated_cost: number;
   actual_cost: number;
   amount_paid: number;
+  internal_amount_paid: number;
   pending_to_pay: number;
 } {
   return groupedData.reduce((totals, group) => {
@@ -95,12 +99,14 @@ export function calculateGrandTotals(groupedData: GroupedReportData[]): {
       estimated_cost: totals.estimated_cost + group.totals.estimated_cost,
       actual_cost: totals.actual_cost + group.totals.actual_cost,
       amount_paid: totals.amount_paid + group.totals.amount_paid,
+      internal_amount_paid: totals.internal_amount_paid + group.totals.internal_amount_paid,
       pending_to_pay: totals.pending_to_pay + group.totals.pending_to_pay
     };
   }, {
     estimated_cost: 0,
     actual_cost: 0,
     amount_paid: 0,
+    internal_amount_paid: 0,
     pending_to_pay: 0
   });
 }
