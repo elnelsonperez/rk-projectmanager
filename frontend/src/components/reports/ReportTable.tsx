@@ -1,6 +1,27 @@
 import React from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { GroupedReportData, ReportItem } from '../../hooks/useProjectReport';
+import { Button } from '../ui/button';
+import { Spinner } from '../ui/spinner';
+
+// Refresh icon component
+const RefreshIcon = ({ className }: { className?: string }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+    <path d="M21 3v5h-5" />
+    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+    <path d="M3 21v-5h5" />
+  </svg>
+);
 
 export type ColumnConfig = {
   id: string;
@@ -23,6 +44,8 @@ interface ReportTableProps {
   showIncomeRow?: boolean;
   showBalanceRow?: boolean;
   filterSubtitle?: string;
+  onRefresh?: () => void;
+  isLoading?: boolean;
 }
 
 const ReportTable: React.FC<ReportTableProps> = ({
@@ -32,18 +55,44 @@ const ReportTable: React.FC<ReportTableProps> = ({
   totalIncome = 0,
   showIncomeRow = true,
   showBalanceRow = true,
-  filterSubtitle = ''
+  filterSubtitle = '',
+  onRefresh,
+  isLoading = false
 }) => {
   // Identify numeric columns for styling
   const numericColumns = ['estimated_cost', 'actual_cost', 'amount_paid', 'internal_amount_paid', 'pending_to_pay', 'difference_percentage'];
   
   return (
     <div className="border rounded-lg overflow-hidden">
-      {filterSubtitle && (
-        <div className="bg-muted/20 text-xs p-2 border-b border-border">
-          <strong>Filtro:</strong> {filterSubtitle}
+      <div className="flex justify-between items-center bg-muted/20 p-2 border-b border-border">
+        <div className="text-xs">
+          {filterSubtitle && (
+            <><strong>Filtro:</strong> {filterSubtitle}</>
+          )}
         </div>
-      )}
+        
+        {onRefresh && (
+          <Button
+            onClick={onRefresh}
+            disabled={isLoading}
+            size="sm"
+            variant="outline"
+            className="text-xs flex items-center gap-1"
+          >
+            {isLoading ? (
+              <>
+                <Spinner size="sm" />
+                <span>Actualizando...</span>
+              </>
+            ) : (
+              <>
+                <RefreshIcon className="h-3 w-3" />
+                <span>Actualizar</span>
+              </>
+            )}
+          </Button>
+        )}
+      </div>
       <div className="overflow-x-auto overflow-y-auto max-h-[80vh] relative">
         <table className="min-w-full divide-y divide-border">
           <thead className="bg-muted/50 sticky top-0 z-10 shadow-sm">
@@ -88,7 +137,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                         <td 
                           key={col.id} 
                           className={`px-3 py-2 text-xs text-foreground ${isDescription ? 'max-w-xs' : 'whitespace-nowrap'} ${isNumeric ? 'text-right' : ''} ${shouldHighlight ? 'bg-amber-100 dark:bg-amber-950/10' : ''}`}
-                          style={{ 
+                        style={{
                             borderRight: colIndex === visibleColumns.length - 1 ? 'none' : '1px solid var(--border)' 
                           }}
                         >

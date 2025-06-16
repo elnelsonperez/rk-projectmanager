@@ -33,7 +33,17 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
     columnHelper.accessor('date', {
       id: 'date', // Explicitly add id to ensure it's defined
       header: 'Fecha',
-      cell: info => new Date(info.getValue()).toLocaleDateString(),
+      cell: info => {
+        const dateValue = info.getValue();
+        if (!dateValue) return '';
+        // Parse as ISO date string to avoid timezone issues
+        const dateParts = dateValue.split('T')[0].split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]) - 1; // Month is 0-indexed
+        const day = parseInt(dateParts[2]);
+        const date = new Date(year, month, day);
+        return date.toLocaleDateString();
+      },
     }),
     // Add a computed column for transaction type
     columnHelper.accessor(
