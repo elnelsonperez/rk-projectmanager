@@ -33,7 +33,7 @@ export function QuotationItemInput({ index, onRemove }: QuotationItemInputProps)
           <textarea
             {...register(`items.${index}.description`)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            rows={3}
+            rows={5}
             placeholder="Describe el servicio o producto (puedes usar **negrita** y *cursiva*)"
           />
           {errors.items?.[index]?.description && (

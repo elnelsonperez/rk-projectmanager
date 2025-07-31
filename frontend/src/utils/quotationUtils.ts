@@ -1,7 +1,7 @@
 import { Quotation } from '../types/quotation.types';
 import { formatCurrency } from './formatters';
 import { convertMarkdownToHtml } from './markdownUtils';
-
+import logoRk from '../assets/logork.jpg'
 // Elegant quotation styles with maroon/brownish accent colors
 const quotationStyles = `
 :root {
@@ -373,10 +373,7 @@ const bankingNote = `
 export async function generateQuotationDocument(quotation: Quotation): Promise<void> {
   const quotationNumber = generateQuotationNumber();
   const formattedDate = formatSpanishDate(quotation.createdAt);
-  
-  // Get logo URL
-  const logoUrl = '/src/assets/logork.jpg';
-  
+
   // Generate items HTML
   let itemsHtml = '';
   quotation.items.forEach((item, index) => {
@@ -408,7 +405,7 @@ export async function generateQuotationDocument(quotation: Quotation): Promise<v
         <!-- Header -->
         <div class="quotation-header">
           <div class="logo-section">
-            <img src="${logoUrl}" alt="RKArtSide" class="logo" />
+            <img src="${logoRk}" alt="RKArtSide" class="logo" />
           </div>
           <div class="header-title">
             <h1>COTIZACIÓN</h1>
