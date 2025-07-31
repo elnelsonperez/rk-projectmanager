@@ -9,9 +9,11 @@ export default function QuotationPage() {
     items: [{ id: crypto.randomUUID(), description: '', amount: 0 }]
   });
   const [loadedData, setLoadedData] = useState<QuotationFormData | undefined>();
+  const [editingQuotationId, setEditingQuotationId] = useState<string | null>(null);
 
-  const handleLoadQuotation = (data: QuotationFormData) => {
+  const handleLoadQuotation = (data: QuotationFormData, quotationId?: string) => {
     setLoadedData(data);
+    setEditingQuotationId(quotationId || null);
   };
 
   const handleDataChange = (data: QuotationFormData) => {
@@ -21,18 +23,11 @@ export default function QuotationPage() {
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Generar Cotización
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Crea cotizaciones profesionales para tus clientes
-          </p>
-        </div>
-        
+
         <QuotationManager
           currentQuotation={currentData}
           onLoadQuotation={handleLoadQuotation}
+          editingQuotationId={editingQuotationId}
         />
         
         <div className="bg-white rounded-lg shadow-md p-6">

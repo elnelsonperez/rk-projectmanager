@@ -11,11 +11,12 @@ import {
 
 interface QuotationManagerProps {
   currentQuotation: QuotationFormData;
-  onLoadQuotation: (data: QuotationFormData) => void;
+  onLoadQuotation: (data: QuotationFormData, quotationId?: string) => void;
+  editingQuotationId?: string | null;
   onSaveSuccess?: () => void;
 }
 
-export function QuotationManager({ currentQuotation, onLoadQuotation, onSaveSuccess }: QuotationManagerProps) {
+export function QuotationManager({ currentQuotation, onLoadQuotation, editingQuotationId, onSaveSuccess }: QuotationManagerProps) {
   const [savedQuotations, setSavedQuotations] = useState<SavedQuotation[]>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
@@ -35,9 +36,17 @@ export function QuotationManager({ currentQuotation, onLoadQuotation, onSaveSucc
     
     try {
       if (editingId) {
+        // Updating name of existing quotation
         updateSavedQuotation(editingId, saveName.trim(), currentQuotation);
         setEditingId(null);
+      } else if (editingQuotationId) {
+        // Updating data of currently loaded quotation
+        const existingQuotation = getSavedQuotations().find(q => q.id === editingQuotationId);
+        if (existingQuotation) {
+          updateSavedQuotation(editingQuotationId, existingQuotation.name, currentQuotation);
+        }
       } else {
+        // Creating new quotation
         saveQuotation(saveName.trim(), currentQuotation);
       }
       
@@ -51,7 +60,7 @@ export function QuotationManager({ currentQuotation, onLoadQuotation, onSaveSucc
   };
 
   const handleLoad = (quotation: SavedQuotation) => {
-    onLoadQuotation(quotation.data);
+    onLoadQuotation(quotation.data, quotation.id);
     setShowLoadDialog(false);
   };
 
@@ -83,16 +92,44 @@ export function QuotationManager({ currentQuotation, onLoadQuotation, onSaveSucc
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-gray-900">Gestión de Cotizaciones</h3>
+        <div>
+          <h3 className="text-lg font-medium text-gray-900">Gestión de Cotizaciones</h3>
+          {editingQuotationId && (
+            <p className="text-sm text-blue-600 mt-1">
+              Editando: {getSavedQuotations().find(q => q.id === editingQuotationId)?.name}
+            </p>
+          )}
+        </div>
         <div className="flex gap-2">
+          {editingQuotationId && (
+            <button
+              onClick={() => onLoadQuotation({ clientName: '', items: [{ id: crypto.randomUUID(), description: '', amount: 0 }] })}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              title="Crear nueva cotización"
+            >
+              Nueva
+            </button>
+          )}
           <button
-            onClick={() => setShowSaveDialog(true)}
+            onClick={() => {
+              if (editingQuotationId) {
+                // If editing existing quotation, save directly without dialog
+                const existingQuotation = getSavedQuotations().find(q => q.id === editingQuotationId);
+                if (existingQuotation) {
+                  updateSavedQuotation(editingQuotationId, existingQuotation.name, currentQuotation);
+                  loadSavedQuotations();
+                  onSaveSuccess?.();
+                }
+              } else {
+                setShowSaveDialog(true);
+              }
+            }}
             disabled={!canSave}
             className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            title="Guardar cotización actual"
+            title={editingQuotationId ? "Actualizar cotización" : "Guardar cotización actual"}
           >
             <Save className="h-4 w-4 mr-1" />
-            Guardar
+            {editingQuotationId ? 'Actualizar' : 'Guardar'}
           </button>
           <button
             onClick={() => setShowLoadDialog(true)}
