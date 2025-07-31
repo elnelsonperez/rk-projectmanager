@@ -214,6 +214,42 @@ body {
   line-height: 1.3;
 }
 
+/* Signature Section */
+.signature-section {
+  margin-top: 40px;
+  padding: 25px;
+  background: rgba(139, 69, 19, 0.02);
+  border: 2px solid var(--maroon-light);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.signature-title {
+  color: var(--maroon-primary);
+  font-size: 1.1em;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.signature-client-name {
+  color: var(--text-primary);
+  font-size: 1em;
+  margin-bottom: 30px;
+}
+
+.signature-line {
+  border-bottom: 2px solid var(--maroon-primary);
+  width: 300px;
+  margin: 0 auto 10px;
+  height: 40px;
+}
+
+.signature-label {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  font-style: italic;
+}
+
 .banking-note-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -301,6 +337,10 @@ body {
     break-inside: avoid;
   }
   
+  .signature-section {
+    break-inside: avoid;
+  }
+  
   /* Ensure backgrounds print */
   .items-table th {
     background: var(--maroon-primary) !important;
@@ -347,8 +387,9 @@ const bankingNote = `
 <div class="banking-note-container">
   <div class="notes-section">
     <h4>Nota:</h4>
+    <p>• Para comenzar el diseño del proyecto se requiere un 50% del total a pagar como avance. A la entrega del documento final, se requiere el saldo pendiente.</p>
     <p>• Ni cobros ni comisiones ocultas, el cobro es por paquete, haciendo que no tomemos ninguna comisión ni agrandamos el presupuesto. La transparencia es parte crucial en este proceso.</p>
-    <p>• Creamos según gusto y presupuesto, quiero que cada diseño sea una experiencia para los clientes.</p>
+    <p>• Creamos según gusto y presupuesto, deseamos que cada diseño sea una experiencia personalizada para los clientes.</p>
   </div>
   
   <div class="bank-details">
@@ -359,7 +400,7 @@ const bankingNote = `
       <span class="bank-label">Tipo de Cuenta:</span>
       <span class="bank-value">Cuenta de Corriente</span>
       <span class="bank-label">Número:</span>
-      <span class="bank-value">816055909</span>
+      <span class="bank-value">844163782</span>
       <span class="bank-label">Titular:</span>
       <span class="bank-value">Reyka Kawashiro</span>
       <span class="bank-label">Cédula:</span>
@@ -451,6 +492,14 @@ export async function generateQuotationDocument(quotation: Quotation): Promise<v
         <!-- Banking Note -->
         <div class="banking-note">
           ${bankingNote}
+        </div>
+        
+        <!-- Signature Section -->
+        <div class="signature-section">
+          <div class="signature-title">Firma del Cliente</div>
+          <div class="signature-client-name">${quotation.clientName}</div>
+          <div class="signature-line"></div>
+          <div class="signature-label">Firma y Fecha</div>
         </div>
       </div>
       
