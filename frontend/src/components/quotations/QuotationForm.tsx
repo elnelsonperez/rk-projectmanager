@@ -79,12 +79,6 @@ export function QuotationForm({ initialData, onDataChange }: QuotationFormProps)
         total,
         createdAt: new Date()
       });
-      
-      // Reset form after successful generation
-      methods.reset({
-        clientName: '',
-        items: [{ id: crypto.randomUUID(), description: '', amount: 0 }]
-      });
     } catch (error) {
       console.error('Error generating quotation:', error);
     } finally {
