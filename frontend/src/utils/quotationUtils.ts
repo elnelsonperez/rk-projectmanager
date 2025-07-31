@@ -112,7 +112,7 @@ body {
   font-weight: 600;
   font-size: 0.95em;
   text-align: left;
-  padding: 15px 12px;
+  padding: 15px 20px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -133,7 +133,7 @@ body {
 }
 
 .items-table td {
-  padding: 12px;
+  padding: 12px 20px;
   border-bottom: 1px solid rgba(139, 69, 19, 0.2);
   font-size: 0.95em;
 }
