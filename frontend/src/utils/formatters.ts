@@ -5,7 +5,10 @@
  */
 export function formatCurrency(value: number | null | undefined): string {
   if (value == null) return '-';
-  return `RD$${value.toLocaleString('es-DO')}`;
+  return `RD$${value.toLocaleString('es-DO', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
 }
 
 /**

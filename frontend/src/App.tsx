@@ -10,6 +10,7 @@ import EditProjectPage from './pages/EditProjectPage'
 import ProjectReportPage from './pages/ProjectReportPage'
 import AuditLogsPage from './pages/AuditLogsPage'
 import ProjectAuditLogsPage from './pages/ProjectAuditLogsPage'
+import QuotationPage from './pages/QuotationPage'
 import { ToastContainer } from './components/ui/toast'
 
 // Create a query client
@@ -30,6 +31,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="audit-logs" element={<AuditLogsPage />} />
+            <Route path="cotizaciones" element={<QuotationPage />} />
             <Route path="projects">
               <Route index element={<Navigate to="/" replace />} />
               <Route path="new" element={<NewProjectPage />} />
