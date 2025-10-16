@@ -7,6 +7,7 @@ import {
   SortingState,
   ColumnDef,
   VisibilityState,
+  RowSelectionState,
 } from '@tanstack/react-table';
 import { Button } from './button';
 import { Spinner } from './spinner';
@@ -30,8 +31,9 @@ export interface DataTableProps<TData> {
   defaultSorting?: SortingState;
   summaryRow?: React.ReactNode;
   initialColumnVisibility?: VisibilityState;
-  renderTableHeader?: (props: { columnSelector: React.ReactNode }) => React.ReactNode;
+  renderTableHeader?: (props: { columnSelector: React.ReactNode; selectedRows: TData[]; clearSelection: () => void }) => React.ReactNode;
   rowClassName?: (row: TData) => string;
+  enableRowSelection?: boolean;
 }
 
 export function DataTable<TData>({
@@ -49,9 +51,11 @@ export function DataTable<TData>({
   initialColumnVisibility,
   renderTableHeader,
   rowClassName,
+  enableRowSelection = false,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>(defaultSorting);
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     initialColumnVisibility || {}
   );
@@ -63,14 +67,21 @@ export function DataTable<TData>({
     state: {
       sorting,
       columnVisibility,
+      rowSelection,
     },
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     enableSorting: true,
     enableMultiSort: true,
+    enableRowSelection: enableRowSelection,
   });
+
+  // Get selected rows
+  const selectedRows = table.getFilteredSelectedRowModel().rows.map(row => row.original);
+  const clearSelection = () => setRowSelection({});
 
   // Function to copy cell content to clipboard
   const copyToClipboard = (text: string) => {
@@ -177,7 +188,7 @@ export function DataTable<TData>({
     <div className="space-y-2">
       {/* Table header - either custom or default */}
       {renderTableHeader ? (
-        renderTableHeader({ columnSelector })
+        renderTableHeader({ columnSelector, selectedRows, clearSelection })
       ) : (
         <div className="flex justify-end">
           {columnSelector}
@@ -190,6 +201,17 @@ export function DataTable<TData>({
             <thead className="bg-muted/50">
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>
+                  {enableRowSelection && (
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-foreground w-12">
+                      <input
+                        type="checkbox"
+                        checked={table.getIsAllRowsSelected()}
+                        indeterminate={table.getIsSomeRowsSelected()}
+                        onChange={table.getToggleAllRowsSelectedHandler()}
+                        className="cursor-pointer"
+                      />
+                    </th>
+                  )}
                   {headerGroup.headers.map(header => (
                     <th
                       key={header.id}
@@ -227,6 +249,16 @@ export function DataTable<TData>({
                     setSelectedRowIndex(rowIndex);
                   }}
                 >
+                  {enableRowSelection && (
+                    <td className="px-3 py-2 text-xs text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={row.getIsSelected()}
+                        onChange={row.getToggleSelectedHandler()}
+                        className="cursor-pointer"
+                      />
+                    </td>
+                  )}
                   {row.getVisibleCells().map(cell => {
                     // Get cell value as string
                     const cellValue = String(

@@ -282,7 +282,8 @@ export function openPrintWindow(
   logoUrl: string,
   reportNotes: string,
   tableContent: string,
-  filterSubtitle: string = ''
+  filterSubtitle: string = '',
+  clientName?: string
 ): void {
   // Format current date
   const currentDate = new Date().toLocaleDateString('es-ES', {
@@ -310,6 +311,7 @@ export function openPrintWindow(
             <img src="${logoUrl}" alt="RKArtSide" class="logo" />
             <div class="report-header-text">
               <h1 class="project-name">${projectName}</h1>
+              ${clientName ? `<p class="report-date" style="font-weight: 600;">Cliente: ${clientName}</p>` : ''}
               <p class="report-date">${currentDate}</p>
               ${filterSubtitle ? `<p class="filter-subtitle" style="font-size: 13px; margin-top: 3px; color: #505050;"><strong>Filtro:</strong> ${filterSubtitle}</p>` : ''}
             </div>

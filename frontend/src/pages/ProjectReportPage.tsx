@@ -104,9 +104,10 @@ export default function ProjectReportPage() {
   // Show print-friendly view
   const handlePrint = () => {
     if (!reportData) return;
-    
+
     const projectName = project?.name || `Proyecto ${projectId}`;
-    
+    const clientName = project?.clients?.name;
+
     // Generate subtitle with active filters
     let filterSubtitle = '';
     if (selectedArea) {
@@ -118,17 +119,17 @@ export default function ProjectReportPage() {
     if (selectedSupplier) {
       filterSubtitle += `Proveedor: ${selectedSupplier}`;
     }
-    
+
     const tableContent = generateTableContent(
-      visibleColumns, 
-      groupedData, 
-      grandTotals, 
+      visibleColumns,
+      groupedData,
+      grandTotals,
       totalIncome,
       showIncomeRow,
       showBalanceRow,
     );
-    
-    openPrintWindow(projectName, logoRk, reportNotes, tableContent, filterSubtitle);
+
+    openPrintWindow(projectName, logoRk, reportNotes, tableContent, filterSubtitle, clientName);
   }
   
   // Loading state
@@ -262,7 +263,7 @@ export default function ProjectReportPage() {
             </div>
             <Editor 
               value={reportNotes} 
-              onChange={(e: any) => setReportNotes(e.target.value)}
+              onChange={(e) => setReportNotes(e.target.value)}
               containerProps={{
                 style: {
                   height: '200px', 

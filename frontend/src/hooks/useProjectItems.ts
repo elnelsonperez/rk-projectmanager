@@ -44,7 +44,7 @@ export function useProjectItems(projectId: number | undefined | null) {
         .from('project_items')
         .select('*, suppliers(name)')
         .eq('project_id', projectId)
-        .order('updated_at', { ascending: false })
+        .order('id', { ascending: true })
 
       if (error) throw error
       return data as (ProjectItem & { suppliers: { name: string } | null })[]
@@ -131,6 +131,27 @@ export function useDeleteProjectItem() {
 
       if (error) throw error
       return { id, projectId }
+    },
+    onSuccess: ({ projectId }) => {
+      queryClient.invalidateQueries({ queryKey: ['projectItems', projectId] })
+      queryClient.invalidateQueries({ queryKey: ['projectAreas', projectId] })
+    },
+  })
+}
+
+// Bulk delete project items
+export function useBulkDeleteProjectItems() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ ids, projectId }: { ids: number[]; projectId: number }) => {
+      const { error } = await supabase
+        .from('project_items')
+        .delete()
+        .in('id', ids)
+
+      if (error) throw error
+      return { ids, projectId }
     },
     onSuccess: ({ projectId }) => {
       queryClient.invalidateQueries({ queryKey: ['projectItems', projectId] })

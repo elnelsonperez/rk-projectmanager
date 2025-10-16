@@ -4,6 +4,7 @@ import { Project } from '../store/projectStore'
 import { Database } from '../types/database.types'
 
 export type ProjectInput = Database['public']['Tables']['projects']['Insert']
+export type ProjectWithClient = Project & { clients: { name: string } | null }
 
 // Fetch all projects
 export function useProjects() {
@@ -24,23 +25,23 @@ export function useProjects() {
 
 // Fetch a single project by ID
 export function useProject(id: string | number | undefined) {
-  return useQuery({
+  return useQuery<ProjectWithClient | null>({
     queryKey: ['projects', id],
     queryFn: async () => {
       if (!id) return null
-      
+
       // Convert string ID to number if needed
       const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-      
+
       const { data, error } = await supabase
         .from('projects')
-        .select('*')
+        .select('*, clients(name)')
         .eq('id', numericId)
         .is('deleted_at', null) // Only show non-deleted projects
         .single()
 
       if (error) throw error
-      return data as Project
+      return data as ProjectWithClient
     },
     enabled: !!id,
   })

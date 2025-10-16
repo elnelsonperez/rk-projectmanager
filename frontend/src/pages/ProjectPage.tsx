@@ -7,6 +7,7 @@ import { Spinner } from '../components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs'
 import { ProjectItemsTable } from '../components/project-items/ProjectItemsTable'
 import { ProjectItemModal } from '../components/project-items/ProjectItemModal'
+import { BulkItemsModal } from '../components/project-items/BulkItemsModal'
 import { ProjectItem } from '../hooks/useProjectItems'
 import { TransactionsTable } from '../components/transactions/TransactionsTable'
 import { TransactionModal } from '../components/transactions/TransactionModal'
@@ -45,6 +46,7 @@ export default function ProjectPage() {
   
   // Project Items state
   const [itemModalOpen, setItemModalOpen] = useState(false)
+  const [bulkItemsModalOpen, setBulkItemsModalOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<ProjectItem | undefined>()
   
   // Transactions state
@@ -225,18 +227,30 @@ export default function ProjectPage() {
         )}
         
         <TabsContent value="items" className="p-0 mt-2">
-          <ProjectItemsTable 
+          <ProjectItemsTable
             projectId={Number(projectId)}
             onEditItem={handleEditItem}
             onCreateTransaction={handleCreateTransactionForItem}
+            onBulkCreate={() => setBulkItemsModalOpen(true)}
           />
-          
+
           {itemModalOpen && (
             <ProjectItemModal
               isOpen={itemModalOpen}
               projectId={Number(projectId)}
               item={selectedItem}
-              onClose={() => setItemModalOpen(false)}
+              onClose={() => {
+                setItemModalOpen(false)
+                setSelectedItem(undefined)
+              }}
+            />
+          )}
+
+          {bulkItemsModalOpen && (
+            <BulkItemsModal
+              isOpen={bulkItemsModalOpen}
+              projectId={Number(projectId)}
+              onClose={() => setBulkItemsModalOpen(false)}
             />
           )}
         </TabsContent>
