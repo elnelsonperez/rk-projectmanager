@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useProject, useUpdateProject, ProjectInput } from '../hooks/useProjects'
 import { useClients, useCreateClient, ClientInput } from '../hooks/useClients'
@@ -30,7 +30,7 @@ export default function EditProjectPage() {
   console.log("Error state:", error)
   const updateProject = useUpdateProject()
   
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProjectFormInput>()
+  const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<ProjectFormInput>()
   
   // Load project data into form
   useEffect(() => {
@@ -156,15 +156,22 @@ export default function EditProjectPage() {
               <Spinner size="sm" className="mr-2" /> Cargando clientes...
             </div>
           ) : (
-            <Combobox
-              id="client"
-              options={clients?.map(client => client.name) || []}
-              registration={register('client', { 
-                required: false,
-                onChange: (e) => setSelectedClient(e.target.value)
-              })}
-              defaultValue={selectedClient}
-              placeholder="Seleccionar o crear un cliente"
+            <Controller
+              name="client"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <Combobox
+                  id="client"
+                  value={field.value || selectedClient}
+                  onChange={(value) => {
+                    field.onChange(value)
+                    setSelectedClient(value)
+                  }}
+                  options={clients?.map(client => client.name) || []}
+                  placeholder="Seleccionar o crear un cliente"
+                />
+              )}
             />
           )}
         </div>

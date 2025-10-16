@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { useCreateProjectItem, useUpdateProjectItem, useDeleteProjectItem, ProjectItem, useProjectAreas } from '../../hooks/useProjectItems'
+import { useSuppliers } from '../../hooks/useSuppliers'
 import { Button } from '../ui/button'
 import { CurrencyInput } from '../ui/CurrencyInput'
 import { Combobox } from '../ui/Combobox'
+import { ComboboxObject } from '../ui/ComboboxObject'
 import { toast } from '../ui/toast'
 import { ConfirmationDialog } from '../ui/confirmation-dialog'
 import { Trash2 } from 'lucide-react'
@@ -33,8 +35,9 @@ export function ProjectItemModal({
   const updateItem = useUpdateProjectItem()
   const deleteItem = useDeleteProjectItem()
   const { data: areas = [] } = useProjectAreas(projectId)
+  const { data: suppliers = [] } = useSuppliers()
   
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<FormData>({
     defaultValues: isNewItem
       ? {
           project_id: projectId,
@@ -200,13 +203,20 @@ export function ProjectItemModal({
           <div className="p-4 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Combobox
-                  id="area"
-                  registration={register('area')}
-                  options={areas}
-                  label="Área"
-                  placeholder="Área o ubicación"
-                  defaultValue={item?.area || ''}
+                <Controller
+                  name="area"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <Combobox
+                      id="area"
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      options={areas}
+                      label="Área"
+                      placeholder="Área o ubicación"
+                    />
+                  )}
                 />
               </div>
               
@@ -281,17 +291,25 @@ export function ProjectItemModal({
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <label htmlFor="supplier_id" className="block font-medium">
-                  Proveedor
-                </label>
-                <select
-                  id="supplier_id"
-                  {...register('supplier_id', { valueAsNumber: true })}
-                  className="w-full p-2 border rounded-md"
-                >
-                  <option value="">Sin proveedor</option>
-                  {/* We would fetch and map suppliers here */}
-                </select>
+                <Controller
+                  name="supplier_id"
+                  control={control}
+                  render={({ field }) => (
+                    <ComboboxObject
+                      id="supplier_id"
+                      value={field.value}
+                      onChange={field.onChange}
+                      options={suppliers.map(supplier => ({
+                        value: supplier.id,
+                        label: supplier.name,
+                        description: supplier.contact_name || undefined
+                      }))}
+                      label="Proveedor"
+                      placeholder="Seleccionar proveedor"
+                      emptyOption="Sin proveedor"
+                    />
+                  )}
+                />
               </div>
             </div>
             

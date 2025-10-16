@@ -1,6 +1,6 @@
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { useCreateProject, ProjectInput } from '../hooks/useProjects'
 import { useClients, useCreateClient, ClientInput } from '../hooks/useClients'
@@ -22,7 +22,7 @@ export default function NewProjectPage() {
     client?: string;
   }
   
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProjectFormInput>({
+  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<ProjectFormInput>({
     defaultValues: {
       name: '',
       status: 'Planificación',
@@ -101,15 +101,22 @@ export default function NewProjectPage() {
               <Spinner size="sm" className="mr-2" /> Cargando clientes...
             </div>
           ) : (
-            <Combobox
-              id="client"
-              options={clients?.map(client => client.name) || []}
-              registration={register('client', {
-                required: false,
-                onChange: (e) => setSelectedClient(e.target.value)
-              })}
-              defaultValue={selectedClient}
-              placeholder="Seleccionar o crear un cliente"
+            <Controller
+              name="client"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <Combobox
+                  id="client"
+                  value={field.value || ''}
+                  onChange={(value) => {
+                    field.onChange(value)
+                    setSelectedClient(value)
+                  }}
+                  options={clients?.map(client => client.name) || []}
+                  placeholder="Seleccionar o crear un cliente"
+                />
+              )}
             />
           )}
         </div>

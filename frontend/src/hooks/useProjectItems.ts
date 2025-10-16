@@ -76,7 +76,7 @@ export function useProjectItem(id: number | undefined) {
 // Create a new project item
 export function useCreateProjectItem() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (newItem: ProjectItemInsert) => {
       const { data, error } = await supabase
@@ -90,6 +90,7 @@ export function useCreateProjectItem() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projectItems', data.project_id] })
+      queryClient.invalidateQueries({ queryKey: ['projectAreas', data.project_id] })
     },
   })
 }
@@ -97,7 +98,7 @@ export function useCreateProjectItem() {
 // Update an existing project item
 export function useUpdateProjectItem() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async ({ id, ...updates }: ProjectItemUpdate) => {
       const { data, error } = await supabase
@@ -112,6 +113,7 @@ export function useUpdateProjectItem() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projectItems', data.project_id] })
+      queryClient.invalidateQueries({ queryKey: ['projectAreas', data.project_id] })
     },
   })
 }
@@ -119,7 +121,7 @@ export function useUpdateProjectItem() {
 // Delete a project item
 export function useDeleteProjectItem() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async ({ id, projectId }: { id: number; projectId: number }) => {
       const { error } = await supabase
@@ -132,6 +134,7 @@ export function useDeleteProjectItem() {
     },
     onSuccess: ({ projectId }) => {
       queryClient.invalidateQueries({ queryKey: ['projectItems', projectId] })
+      queryClient.invalidateQueries({ queryKey: ['projectAreas', projectId] })
     },
   })
 }

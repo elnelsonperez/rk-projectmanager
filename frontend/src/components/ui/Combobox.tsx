@@ -1,26 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { UseFormRegisterReturn } from 'react-hook-form';
 
 interface ComboboxProps {
   options: string[];
-  registration: UseFormRegisterReturn;
+  value: string;
+  onChange: (value: string) => void;
   label?: string;
   placeholder?: string;
   id: string;
   error?: string;
-  defaultValue?: string;
 }
 
 export const Combobox: React.FC<ComboboxProps> = ({
   options,
-  registration,
+  value,
+  onChange,
   label,
   placeholder,
   id,
-  error,
-  defaultValue
+  error
 }) => {
-  const [inputValue, setInputValue] = useState(defaultValue || '');
   const [isOpen, setIsOpen] = useState(false);
   const [filteredOptions, setFilteredOptions] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -28,15 +26,15 @@ export const Combobox: React.FC<ComboboxProps> = ({
 
   // Update filtered options when input changes
   useEffect(() => {
-    if (inputValue.trim() === '') {
+    if (value.trim() === '') {
       setFilteredOptions(options);
     } else {
-      const filtered = options.filter(option => 
-        option.toLowerCase().includes(inputValue.toLowerCase())
+      const filtered = options.filter(option =>
+        option.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredOptions(filtered);
     }
-  }, [inputValue, options]);
+  }, [value, options]);
 
   // Handle clicking outside to close dropdown
   useEffect(() => {
@@ -59,20 +57,7 @@ export const Combobox: React.FC<ComboboxProps> = ({
 
   // Handle option selection
   const handleSelectOption = (option: string) => {
-    setInputValue(option);
-    
-    // Manually trigger onChange for react-hook-form
-    if (inputRef.current) {
-      const event = new Event('input', { bubbles: true });
-      Object.defineProperty(event, 'target', {
-        writable: false,
-        value: { value: option, name: inputRef.current.name }
-      });
-      
-      inputRef.current.value = option;
-      registration.onChange(event as any);
-    }
-    
+    onChange(option);
     setIsOpen(false);
   };
 
@@ -88,19 +73,9 @@ export const Combobox: React.FC<ComboboxProps> = ({
         <input
           id={id}
           type="text"
-          {...registration}
-          ref={(e) => {
-            // Connect both the local ref and the form ref
-            inputRef.current = e;
-            if (typeof registration.ref === 'function') {
-              registration.ref(e);
-            }
-          }}
-          value={inputValue}
-          onChange={(e) => {
-            setInputValue(e.target.value);
-            registration.onChange(e);
-          }}
+          ref={inputRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           onFocus={() => setIsOpen(true)}
           className={`w-full h-[44px] p-2 pr-8 border rounded-md ${error ? 'border-red-500' : ''}`}
           placeholder={placeholder}
@@ -140,13 +115,13 @@ export const Combobox: React.FC<ComboboxProps> = ({
                 {option}
               </div>
             ))
-          ) : inputValue.trim() !== '' ? (
+          ) : value.trim() !== '' ? (
             // Show "add new" option when user is typing something new
             <div
               className="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100 text-blue-600"
-              onClick={() => handleSelectOption(inputValue.trim())}
+              onClick={() => handleSelectOption(value.trim())}
             >
-              Añadir "{inputValue.trim()}"
+              Añadir "{value.trim()}"
             </div>
           ) : (
             // Only show this when empty input and no options
