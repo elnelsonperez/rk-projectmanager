@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useProject, useUpdateProjectReportNotes } from '../hooks/useProjects'
 import { 
   useProjectReport, 
@@ -14,6 +14,8 @@ import { useState, useEffect } from 'react'
 import logoRk from '../assets/logork.jpg'
 import ReportTable from '../components/reports/ReportTable'
 import ColumnSelector from '../components/reports/ColumnSelector'
+import { QuickEditItemModal } from '../components/reports/QuickEditItemModal'
+import { ReportItem } from '../hooks/useProjectReport'
 import Editor from 'react-simple-wysiwyg'
 import { generateTableContent, openPrintWindow } from '../utils/printUtils'
 import { X, Filter, Settings, ChevronDown, ChevronUp } from 'lucide-react'
@@ -22,11 +24,13 @@ import { ComboboxObject } from '../components/ui/ComboboxObject'
 export default function ProjectReportPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const parsedProjectId = projectId ? parseInt(projectId) : undefined
+  const navigate = useNavigate()
   const { data: project } = useProject(projectId)
   const [reportNotes, setReportNotes] = useState('')
   const [showIncomeRow, setShowIncomeRow] = useState(false)
   const [showBalanceRow, setShowBalanceRow] = useState(false)
   const [showConfig, setShowConfig] = useState(false)
+  const [editingItem, setEditingItem] = useState<ReportItem | null>(null)
   const { mutate: updateReportNotes, isPending: isSavingNotes } = useUpdateProjectReportNotes()
   
   // Filter state
@@ -130,6 +134,16 @@ export default function ProjectReportPage() {
     );
 
     openPrintWindow(projectName, logoRk, reportNotes, tableContent, filterSubtitle, clientName);
+  }
+
+  // Handle edit item costs
+  const handleEditItem = (item: ReportItem) => {
+    setEditingItem(item)
+  }
+
+  // Handle view transactions for item
+  const handleViewTransactions = (item: ReportItem) => {
+    navigate(`/projects/${projectId}?tab=transactions&itemId=${item.item_id}`)
   }
   
   // Loading state
@@ -344,7 +358,7 @@ export default function ProjectReportPage() {
       </div>
       
       {/* Report table */}
-      <ReportTable 
+      <ReportTable
         visibleColumns={visibleColumns}
         groupedData={groupedData}
         grandTotals={grandTotals}
@@ -352,13 +366,23 @@ export default function ProjectReportPage() {
         showIncomeRow={showIncomeRow}
         showBalanceRow={showBalanceRow}
         filterSubtitle={
-          (selectedArea || selectedSupplier) ? 
+          (selectedArea || selectedSupplier) ?
           [
             selectedArea ? `Área: ${selectedArea}` : '',
             selectedSupplier ? `Proveedor: ${selectedSupplier}` : ''
-          ].filter(Boolean).join(' | ') : 
+          ].filter(Boolean).join(' | ') :
           ''
         }
+        onEditItem={handleEditItem}
+        onViewTransactions={handleViewTransactions}
+      />
+
+      {/* Quick Edit Modal */}
+      <QuickEditItemModal
+        isOpen={!!editingItem}
+        item={editingItem}
+        projectId={parsedProjectId!}
+        onClose={() => setEditingItem(null)}
       />
     </div>
   )

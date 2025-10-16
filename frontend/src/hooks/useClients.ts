@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { Database } from '../types/database.types'
 
@@ -46,7 +46,7 @@ export function useClient(id: string | number | undefined) {
 
 // Create a new client
 export function useCreateClient() {
-  const queryClient = useQueryClient()
+
   
   return useMutation({
     mutationFn: async (newClient: ClientInput) => {
@@ -58,9 +58,6 @@ export function useCreateClient() {
 
       if (error) throw error
       return data as Client
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] })
     },
   })
 }

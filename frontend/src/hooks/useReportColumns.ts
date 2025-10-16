@@ -22,7 +22,7 @@ const defaultColumns: ColumnConfig[] = [
   },
   {
     id: 'actual_cost',
-    label: 'Costo Actual',
+    label: 'Costo Confirmado',
     visible: true,
     render: (item) => formatCurrency(item.actual_cost)
   },
@@ -34,13 +34,13 @@ const defaultColumns: ColumnConfig[] = [
   },
   {
     id: 'amount_paid',
-    label: 'Abonado',
+    label: 'Monto Ejecutado',
     visible: true,
     render: (item) => formatCurrency(item.amount_paid)
   },
   {
     id: 'internal_amount_paid',
-    label: 'Abonado (Interno)',
+    label: 'Monto Ejecutado (Interno)',
     visible: false,
     render: (item) => formatCurrency(item.internal_amount_paid)
   },

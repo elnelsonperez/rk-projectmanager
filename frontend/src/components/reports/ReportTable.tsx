@@ -46,6 +46,8 @@ interface ReportTableProps {
   filterSubtitle?: string;
   onRefresh?: () => void;
   isLoading?: boolean;
+  onEditItem?: (item: ReportItem) => void;
+  onViewTransactions?: (item: ReportItem) => void;
 }
 
 const ReportTable: React.FC<ReportTableProps> = ({
@@ -57,7 +59,9 @@ const ReportTable: React.FC<ReportTableProps> = ({
   showBalanceRow = true,
   filterSubtitle = '',
   onRefresh,
-  isLoading = false
+  isLoading = false,
+  onEditItem,
+  onViewTransactions
 }) => {
   // Identify numeric columns for styling
   const numericColumns = ['estimated_cost', 'actual_cost', 'amount_paid', 'internal_amount_paid', 'pending_to_pay', 'difference_percentage'];
@@ -101,13 +105,18 @@ const ReportTable: React.FC<ReportTableProps> = ({
                 <th
                   key={col.id}
                   className="px-3 py-2 text-left text-xs font-semibold text-foreground bg-muted/50"
-                  style={{ 
-                    borderRight: col === visibleColumns[visibleColumns.length - 1] ? 'none' : '1px solid var(--border)'
+                  style={{
+                    borderRight: '1px solid var(--border)'
                   }}
                 >
                   {col.label}
                 </th>
               ))}
+              {(onEditItem || onViewTransactions) && (
+                <th className="px-3 py-2 text-left text-xs font-semibold text-foreground bg-muted/50">
+                  Acciones
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -120,7 +129,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                     key={`item-${itemIndex}`} 
                     className={itemIndex % 2 === 0 ? '' : 'bg-muted/10'}
                   >
-                    {visibleColumns.map((col, colIndex) => {
+                    {visibleColumns.map((col) => {
                       const isNumeric = numericColumns.includes(col.id);
                       const isDescription = col.id === 'description';
                       
@@ -134,17 +143,50 @@ const ReportTable: React.FC<ReportTableProps> = ({
                         visibleColumns.some(c => c.id === 'internal_amount_paid');
                       
                       return (
-                        <td 
-                          key={col.id} 
+                        <td
+                          key={col.id}
                           className={`px-3 py-2 text-xs text-foreground ${isDescription ? 'max-w-xs' : 'whitespace-nowrap'} ${isNumeric ? 'text-right' : ''} ${shouldHighlight ? 'bg-amber-100 dark:bg-amber-950/10' : ''}`}
-                        style={{
-                            borderRight: colIndex === visibleColumns.length - 1 ? 'none' : '1px solid var(--border)' 
+                          style={{
+                            borderRight: '1px solid var(--border)'
                           }}
                         >
                           {col.render(item)}
                         </td>
                       );
                     })}
+                    {(onEditItem || onViewTransactions) && (
+                      <td className="px-3 py-2 text-xs text-foreground whitespace-nowrap">
+                        <div className="flex gap-1">
+                          {onEditItem && (
+                            <button
+                              onClick={() => onEditItem(item)}
+                              className="p-1 rounded hover:bg-muted transition-colors"
+                              title="Editar costos"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                              </svg>
+                            </button>
+                          )}
+                          {onViewTransactions && (
+                            <button
+                              onClick={() => onViewTransactions(item)}
+                              className="p-1 rounded hover:bg-muted transition-colors"
+                              title="Ver transacciones"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
                 
@@ -181,16 +223,19 @@ const ReportTable: React.FC<ReportTableProps> = ({
                     } else {
                       // Empty cell for other columns
                       return (
-                        <td 
-                          key={`subtotal-${colIndex}`} 
+                        <td
+                          key={`subtotal-${colIndex}`}
                           className="px-3 py-2 text-xs"
-                          style={{ 
-                            borderRight: colIndex === visibleColumns.length - 1 ? 'none' : '1px solid var(--border)' 
+                          style={{
+                            borderRight: '1px solid var(--border)'
                           }}
                         ></td>
                       );
                     }
                   })}
+                  {(onEditItem || onViewTransactions) && (
+                    <td className="px-3 py-2 text-xs"></td>
+                  )}
                 </tr>
               </React.Fragment>
             ))}
@@ -199,15 +244,15 @@ const ReportTable: React.FC<ReportTableProps> = ({
             <tr className="bg-primary/10 font-bold">
               {visibleColumns.map((col, colIndex) => {
                 const style = {
-                  borderRight: colIndex === visibleColumns.length - 1 ? 'none' : '1px solid var(--border)',
+                  borderRight: '1px solid var(--border)',
                   borderTop: '3px double #999'
                 };
-                
+
                 if (colIndex === 0) {
                   // First column shows the total label
                   return (
-                    <td 
-                      key={`total-${colIndex}`} 
+                    <td
+                      key={`total-${colIndex}`}
                       className="px-3 py-2 whitespace-nowrap text-xs font-bold"
                       style={style}
                     >
@@ -216,10 +261,9 @@ const ReportTable: React.FC<ReportTableProps> = ({
                   );
                 } else if (['estimated_cost', 'actual_cost', 'amount_paid', 'internal_amount_paid', 'pending_to_pay'].includes(col.id)) {
                   // Show totals for numeric columns
-                  // For the Costo Actual column, also show the TOTAL GENERAL value in bold
                   return (
-                    <td 
-                      key={`total-${colIndex}`} 
+                    <td
+                      key={`total-${colIndex}`}
                       className="px-3 py-2 whitespace-nowrap text-xs font-bold text-right"
                       style={style}
                     >
@@ -229,14 +273,17 @@ const ReportTable: React.FC<ReportTableProps> = ({
                 } else {
                   // Empty cell for other columns
                   return (
-                    <td 
-                      key={`total-${colIndex}`} 
+                    <td
+                      key={`total-${colIndex}`}
                       className="px-3 py-2 text-xs"
                       style={style}
                     ></td>
                   );
                 }
               })}
+              {(onEditItem || onViewTransactions) && (
+                <td className="px-3 py-2 text-xs" style={{ borderTop: '3px double #999' }}></td>
+              )}
             </tr>
             
             {/* Income row */}
@@ -244,13 +291,13 @@ const ReportTable: React.FC<ReportTableProps> = ({
               <tr className="bg-green-50">
                 {visibleColumns.map((col, colIndex) => {
                   const style = {
-                    borderRight: colIndex === visibleColumns.length - 1 ? 'none' : '1px solid var(--border)'
+                    borderRight: '1px solid var(--border)'
                   };
-                  
+
                   if (colIndex === 0) {
                     return (
-                      <td 
-                        key={`income-${colIndex}`} 
+                      <td
+                        key={`income-${colIndex}`}
                         className="px-3 py-2 whitespace-nowrap text-xs font-bold"
                         style={style}
                       >
@@ -259,8 +306,8 @@ const ReportTable: React.FC<ReportTableProps> = ({
                     );
                   } else if (col.id === 'actual_cost') {
                     return (
-                      <td 
-                        key={`income-${colIndex}`} 
+                      <td
+                        key={`income-${colIndex}`}
                         className="px-3 py-2 whitespace-nowrap text-xs font-bold text-right"
                         style={style}
                       >
@@ -269,14 +316,17 @@ const ReportTable: React.FC<ReportTableProps> = ({
                     );
                   } else {
                     return (
-                      <td 
-                        key={`income-${colIndex}`} 
+                      <td
+                        key={`income-${colIndex}`}
                         className="px-3 py-2 text-xs"
                         style={style}
                       ></td>
                     );
                   }
                 })}
+                {(onEditItem || onViewTransactions) && (
+                  <td className="px-3 py-2 text-xs"></td>
+                )}
               </tr>
             )}
             
@@ -285,14 +335,14 @@ const ReportTable: React.FC<ReportTableProps> = ({
               <tr className="bg-blue-50">
                 {visibleColumns.map((col, colIndex) => {
                   const style = {
-                    borderRight: colIndex === visibleColumns.length - 1 ? 'none' : '1px solid var(--border)',
+                    borderRight: '1px solid var(--border)',
                     borderTop: '1px solid #999'
                   };
-                  
+
                   if (colIndex === 0) {
                     return (
-                      <td 
-                        key={`balance-${colIndex}`} 
+                      <td
+                        key={`balance-${colIndex}`}
                         className="px-3 py-2 whitespace-nowrap text-xs font-bold"
                         style={style}
                       >
@@ -301,10 +351,10 @@ const ReportTable: React.FC<ReportTableProps> = ({
                     );
                   } else if (col.id === 'actual_cost') {
                     // Calculate remaining balance
-                      const remainingBalance = grandTotals.actual_cost - totalIncome ;
+                    const remainingBalance = grandTotals.actual_cost - totalIncome;
                     return (
-                      <td 
-                        key={`balance-${colIndex}`} 
+                      <td
+                        key={`balance-${colIndex}`}
                         className={`px-3 py-2 whitespace-nowrap text-xs font-bold text-right ${remainingBalance < 0 ? 'text-red-600' : 'text-green-600'}`}
                         style={style}
                       >
@@ -313,14 +363,17 @@ const ReportTable: React.FC<ReportTableProps> = ({
                     );
                   } else {
                     return (
-                      <td 
-                        key={`balance-${colIndex}`} 
+                      <td
+                        key={`balance-${colIndex}`}
                         className="px-3 py-2 text-xs"
                         style={style}
                       ></td>
                     );
                   }
                 })}
+                {(onEditItem || onViewTransactions) && (
+                  <td className="px-3 py-2 text-xs" style={{ borderTop: '1px solid #999' }}></td>
+                )}
               </tr>
             )}
           </tbody>

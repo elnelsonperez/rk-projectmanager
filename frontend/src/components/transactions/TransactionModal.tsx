@@ -11,6 +11,7 @@ import { ComboboxObject } from '../ui/ComboboxObject'
 import { CurrencyInput } from '../ui/CurrencyInput'
 import { BudgetGuidance } from './BudgetGuidance'
 import { ConfirmationDialog } from '../ui/confirmation-dialog'
+import { InfoTooltip } from '../ui/InfoTooltip'
 import { Trash2 } from 'lucide-react'
 
 interface TransactionModalProps {
@@ -405,15 +406,20 @@ export function TransactionModal({
             
             <div className={`grid grid-cols-1 ${transactionType === 'income' ? '' : 'md:grid-cols-2'} gap-4`}>
               <div className="space-y-2">
-                <CurrencyInput
-                  id="amount"
-                  label={`${transactionType === 'income' ? 'Monto (Ingreso)' : 'Monto'} *`}
-                  registration={register('amount', { 
-                    required: 'El monto es obligatorio',
-                    valueAsNumber: true,
-                  })}
-                  error={errors.amount?.message}
-                />
+                <div className="flex items-center">
+                  <CurrencyInput
+                    id="amount"
+                    label={`${transactionType === 'income' ? 'Monto (Ingreso)' : 'Monto Interno'} *`}
+                    registration={register('amount', {
+                      required: 'El monto es obligatorio',
+                      valueAsNumber: true,
+                    })}
+                    error={errors.amount?.message}
+                  />
+                  {transactionType !== 'income' && (
+                    <InfoTooltip text="El monto real que pagaste al proveedor (costo interno)" />
+                  )}
+                </div>
                 {transactionType === 'income' && (
                   <p className="text-xs text-muted-foreground mt-1">
                     Para transacciones de ingreso, este monto será registrado como un pago del cliente.
@@ -424,14 +430,17 @@ export function TransactionModal({
               {/* Only show client amount field for expense transactions */}
               {transactionType !== 'income' && (
                 <div className="space-y-2">
-                  <CurrencyInput
-                    id="client_facing_amount"
-                    label="Monto Cliente"
-                    registration={register('client_facing_amount', { 
-                      valueAsNumber: true
-                    })}
-                    className={selectedProjectItemId && budgetInfo?.isOverBudget ? 'border-red-300' : ''}
-                  />
+                  <div className="flex items-center">
+                    <CurrencyInput
+                      id="client_facing_amount"
+                      label="Monto a Aplicar al Presupuesto"
+                      registration={register('client_facing_amount', {
+                        valueAsNumber: true
+                      })}
+                      className={selectedProjectItemId && budgetInfo?.isOverBudget ? 'border-red-300' : ''}
+                    />
+                    <InfoTooltip text="Cuánto de este gasto se aplica al presupuesto del cliente (puede ser diferente del costo interno)" />
+                  </div>
                   
                   {/* Show budget guidance when a project item is selected */}
                   {selectedProjectItemId && budgetInfo && (

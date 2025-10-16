@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { Database } from '../types/database.types'
 
@@ -75,8 +75,6 @@ export function useProjectItem(id: number | undefined) {
 
 // Create a new project item
 export function useCreateProjectItem() {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (newItem: ProjectItemInsert) => {
       const { data, error } = await supabase
@@ -87,18 +85,12 @@ export function useCreateProjectItem() {
 
       if (error) throw error
       return data as ProjectItem
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['projectItems', data.project_id] })
-      queryClient.invalidateQueries({ queryKey: ['projectAreas', data.project_id] })
-    },
+    }
   })
 }
 
 // Update an existing project item
 export function useUpdateProjectItem() {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async ({ id, ...updates }: ProjectItemUpdate) => {
       const { data, error } = await supabase
@@ -111,17 +103,11 @@ export function useUpdateProjectItem() {
       if (error) throw error
       return data as ProjectItem
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['projectItems', data.project_id] })
-      queryClient.invalidateQueries({ queryKey: ['projectAreas', data.project_id] })
-    },
   })
 }
 
 // Delete a project item
 export function useDeleteProjectItem() {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async ({ id, projectId }: { id: number; projectId: number }) => {
       const { error } = await supabase
@@ -132,17 +118,11 @@ export function useDeleteProjectItem() {
       if (error) throw error
       return { id, projectId }
     },
-    onSuccess: ({ projectId }) => {
-      queryClient.invalidateQueries({ queryKey: ['projectItems', projectId] })
-      queryClient.invalidateQueries({ queryKey: ['projectAreas', projectId] })
-    },
   })
 }
 
 // Bulk delete project items
 export function useBulkDeleteProjectItems() {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async ({ ids, projectId }: { ids: number[]; projectId: number }) => {
       const { error } = await supabase
@@ -152,10 +132,6 @@ export function useBulkDeleteProjectItems() {
 
       if (error) throw error
       return { ids, projectId }
-    },
-    onSuccess: ({ projectId }) => {
-      queryClient.invalidateQueries({ queryKey: ['projectItems', projectId] })
-      queryClient.invalidateQueries({ queryKey: ['projectAreas', projectId] })
     },
   })
 }

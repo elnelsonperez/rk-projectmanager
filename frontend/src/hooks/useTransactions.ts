@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { Database } from '../types/database.types'
 
@@ -86,7 +86,7 @@ export function useTransaction(id: number | undefined) {
 
 // Create a new transaction
 export function useCreateTransaction() {
-  const queryClient = useQueryClient()
+
   
   return useMutation({
     mutationFn: async (newTransaction: TransactionInsert) => {
@@ -99,16 +99,12 @@ export function useCreateTransaction() {
       if (error) throw error
       return data as Transaction
     },
-    onSuccess: () => {
-      // Invalidate all transaction queries
-      queryClient.invalidateQueries({ queryKey: ['transactions'] })
-    },
   })
 }
 
 // Update an existing transaction
 export function useUpdateTransaction() {
-  const queryClient = useQueryClient()
+
   
   return useMutation({
     mutationFn: async ({ id, ...updates }: TransactionUpdate) => {
@@ -122,16 +118,12 @@ export function useUpdateTransaction() {
       if (error) throw error
       return data as Transaction
     },
-    onSuccess: () => {
-      // Invalidate all transaction queries
-      queryClient.invalidateQueries({ queryKey: ['transactions'] })
-    },
   })
 }
 
 // Delete a transaction
 export function useDeleteTransaction() {
-  const queryClient = useQueryClient()
+
   
   return useMutation({
     mutationFn: async ({ id, projectId }: { id: number; projectId: number | null }) => {
@@ -142,10 +134,6 @@ export function useDeleteTransaction() {
 
       if (error) throw error
       return { id, projectId }
-    },
-    onSuccess: () => {
-      // Invalidate all transaction queries
-      queryClient.invalidateQueries({ queryKey: ['transactions'] })
     },
   })
 }

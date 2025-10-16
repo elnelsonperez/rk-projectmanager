@@ -8,6 +8,7 @@ import { Combobox } from '../ui/Combobox'
 import { ComboboxObject } from '../ui/ComboboxObject'
 import { toast } from '../ui/toast'
 import { ConfirmationDialog } from '../ui/confirmation-dialog'
+import { InfoTooltip } from '../ui/InfoTooltip'
 import { Trash2 } from 'lucide-react'
 
 interface ProjectItemModalProps {
@@ -315,42 +316,51 @@ export function ProjectItemModal({
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <CurrencyInput
-                  id="estimated_cost"
-                  registration={register('estimated_cost', { 
-                    valueAsNumber: true,
-                    min: { value: 0, message: 'El costo debe ser positivo' }
-                  })}
-                  label="Costo Estimado"
-                  placeholder="0.00"
-                  error={errors.estimated_cost?.message}
-                />
+                <div className="flex items-center">
+                  <CurrencyInput
+                    id="estimated_cost"
+                    registration={register('estimated_cost', {
+                      valueAsNumber: true,
+                      min: { value: 0, message: 'El costo debe ser positivo' }
+                    })}
+                    label="Presupuesto Inicial"
+                    placeholder="0.00"
+                    error={errors.estimated_cost?.message}
+                  />
+                  <InfoTooltip text="El costo estimado inicialmente para este artículo" />
+                </div>
               </div>
-              
+
               <div>
-                <CurrencyInput
-                  id="internal_cost"
-                  registration={register('internal_cost', { 
-                    valueAsNumber: true,
-                    min: { value: 0, message: 'El costo debe ser positivo' }
-                  })}
-                  label="Costo Interno"
-                  placeholder="0.00"
-                  error={errors.internal_cost?.message}
-                />
+                <div className="flex items-center">
+                  <CurrencyInput
+                    id="internal_cost"
+                    registration={register('internal_cost', {
+                      valueAsNumber: true,
+                      min: { value: 0, message: 'El costo debe ser positivo' }
+                    })}
+                    label="Costo Interno Real"
+                    placeholder="0.00"
+                    error={errors.internal_cost?.message}
+                  />
+                  <InfoTooltip text="Lo que realmente pagamos al proveedor (puede incluir descuentos)" />
+                </div>
               </div>
-              
+
               <div>
-                <CurrencyInput
-                  id="client_cost"
-                  registration={register('client_cost', { 
-                    valueAsNumber: true,
-                    min: { value: 0, message: 'El costo debe ser positivo' }
-                  })}
-                  label="Costo Cliente"
-                  placeholder="0.00"
-                  error={errors.client_cost?.message}
-                />
+                <div className="flex items-center">
+                  <CurrencyInput
+                    id="client_cost"
+                    registration={register('client_cost', {
+                      valueAsNumber: true,
+                      min: { value: 0, message: 'El costo debe ser positivo' }
+                    })}
+                    label="Costo Confirmado al Cliente"
+                    placeholder="0.00"
+                    error={errors.client_cost?.message}
+                  />
+                  <InfoTooltip text="El costo total confirmado a cobrar al cliente por este artículo" />
+                </div>
               </div>
             </div>
             

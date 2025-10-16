@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { Project } from '../store/projectStore'
 import { Database } from '../types/database.types'
@@ -49,7 +49,7 @@ export function useProject(id: string | number | undefined) {
 
 // Create a new project
 export function useCreateProject() {
-  const queryClient = useQueryClient()
+
   
   return useMutation({
     mutationFn: async (newProject: ProjectInput) => {
@@ -62,15 +62,12 @@ export function useCreateProject() {
       if (error) throw error
       return data as Project
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
-    },
   })
 }
 
 // Update an existing project
 export function useUpdateProject() {
-  const queryClient = useQueryClient()
+
   
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Project> & { id: number }) => {
@@ -84,16 +81,12 @@ export function useUpdateProject() {
       if (error) throw error
       return data as Project
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
-      queryClient.invalidateQueries({ queryKey: ['projects', String(data.id)] })
-    },
   })
 }
 
 // Update just the report notes of a project
 export function useUpdateProjectReportNotes() {
-  const queryClient = useQueryClient()
+
   
   return useMutation({
     mutationFn: async ({ id, report_notes }: { id: number, report_notes: string }) => {
@@ -107,15 +100,12 @@ export function useUpdateProjectReportNotes() {
       if (error) throw error
       return data as Project
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['projects', String(data.id)] })
-    },
   })
 }
 
 // Soft delete a project (mark as deleted)
 export function useDeleteProject() {
-  const queryClient = useQueryClient()
+
   
   return useMutation({
     mutationFn: async (projectId: number) => {
@@ -127,10 +117,6 @@ export function useDeleteProject() {
       
       if (error) throw error
       return projectId
-    },
-    onSuccess: (deletedProjectId) => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
-      queryClient.invalidateQueries({ queryKey: ['projects', String(deletedProjectId)] })
     },
   })
 }

@@ -2,11 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import { getProjectReport } from '../lib/supabase'
 
 export type ReportItem = {
+  item_id: number;
   category: string;
   area: string | null;
   item_name: string;
   description: string | null;
   estimated_cost: number | null;
+  internal_cost: number | null;
   actual_cost: number | null;
   difference_percentage: number | null;
   amount_paid: number;

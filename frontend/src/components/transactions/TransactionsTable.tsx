@@ -14,11 +14,12 @@ type TransactionWithProjectItem = Transaction & {
 interface TransactionsTableProps {
   projectId: number
   onEditTransaction: (transaction: TransactionWithProjectItem) => void
+  filterItemId?: number
 }
 
 type TransactionType = 'all' | 'expense' | 'income'
 
-export function TransactionsTable({ projectId, onEditTransaction }: TransactionsTableProps) {
+export function TransactionsTable({ projectId, onEditTransaction, filterItemId }: TransactionsTableProps) {
   const { data: transactions, isLoading } = useTransactions(projectId)
   const [transactionTypeFilter, setTransactionTypeFilter] = useState<TransactionType>('all')
   
@@ -216,8 +217,14 @@ export function TransactionsTable({ projectId, onEditTransaction }: Transactions
     </>
   ) : null;
 
-  // Filter data based on transaction type
+  // Filter data based on transaction type and item ID
   const filteredData = transactions?.filter(transaction => {
+    // Filter by item ID if specified
+    if (filterItemId && transaction.project_item_id !== filterItemId) {
+      return false;
+    }
+
+    // Filter by transaction type
     if (transactionTypeFilter === 'all') return true;
     if (transactionTypeFilter === 'income') return transaction.amount < 0;
     if (transactionTypeFilter === 'expense') return transaction.amount >= 0;

@@ -256,9 +256,10 @@ export default function ProjectPage() {
         </TabsContent>
         
         <TabsContent value="transactions" className="p-0 mt-2">
-          <TransactionsTable 
+          <TransactionsTable
             projectId={Number(projectId)}
             onEditTransaction={handleEditTransaction}
+            filterItemId={searchParams.get('itemId') ? Number(searchParams.get('itemId')) : undefined}
           />
           
           {transactionModalOpen && (

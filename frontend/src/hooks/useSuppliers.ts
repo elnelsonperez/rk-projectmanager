@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { Database } from '../types/database.types'
 
@@ -46,7 +46,7 @@ export function useSupplier(id: string | number | undefined) {
 
 // Create a new supplier
 export function useCreateSupplier() {
-  const queryClient = useQueryClient()
+
 
   return useMutation({
     mutationFn: async (newSupplier: SupplierInput) => {
@@ -59,15 +59,12 @@ export function useCreateSupplier() {
       if (error) throw error
       return data as Supplier
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['suppliers'] })
-    },
   })
 }
 
 // Update an existing supplier
 export function useUpdateSupplier() {
-  const queryClient = useQueryClient()
+
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Supplier> & { id: number }) => {
@@ -81,15 +78,12 @@ export function useUpdateSupplier() {
       if (error) throw error
       return data as Supplier
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['suppliers'] })
-    },
   })
 }
 
 // Delete a supplier
 export function useDeleteSupplier() {
-  const queryClient = useQueryClient()
+
 
   return useMutation({
     mutationFn: async (id: number) => {
@@ -100,9 +94,6 @@ export function useDeleteSupplier() {
 
       if (error) throw error
       return id
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['suppliers'] })
     },
   })
 }

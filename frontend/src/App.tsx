@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {MutationCache, QueryClient, QueryClientProvider} from '@tanstack/react-query'
 
 // Import layout and pages
 import Layout from './components/layout/Layout'
@@ -15,6 +15,11 @@ import { ToastContainer } from './components/ui/toast'
 
 // Create a query client
 const queryClient = new QueryClient({
+    mutationCache: new MutationCache({
+        onSuccess: () => {
+            queryClient.invalidateQueries()
+        },
+    }),
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
