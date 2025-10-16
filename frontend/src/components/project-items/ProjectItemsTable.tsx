@@ -132,7 +132,7 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction, 
   const summaryRow = items && items.length > 0 ? (
     <>
       <td className="px-3 py-2 text-xs text-foreground">Total</td>
-      <td colSpan={4} className="px-3 py-2 text-xs text-foreground"></td>
+      <td colSpan={5} className="px-3 py-2 text-xs text-foreground"></td>
       <td className="px-3 py-2 text-xs text-foreground">
         {items.reduce((sum, item) => sum + (item.quantity || 0), 0)}
       </td>
