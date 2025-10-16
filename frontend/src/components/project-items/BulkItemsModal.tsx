@@ -19,7 +19,7 @@ interface BulkItemFormData {
     area: string
     item_name: string
     description: string
-    category: string
+    category: 'Muebles' | 'Decoración' | 'Accesorios' | 'Materiales' | 'Mano de Obra' | 'Otro'
     supplier_id?: number
     cost: number | undefined
   }[]

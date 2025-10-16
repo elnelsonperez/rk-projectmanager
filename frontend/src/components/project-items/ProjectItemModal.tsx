@@ -298,7 +298,7 @@ export function ProjectItemModal({
                   render={({ field }) => (
                     <ComboboxObject
                       id="supplier_id"
-                      value={field.value}
+                      value={field.value ?? undefined}
                       onChange={field.onChange}
                       options={suppliers.map(supplier => ({
                         value: supplier.id,
