@@ -67,17 +67,29 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction, 
     columnHelper.accessor('estimated_cost', {
       id: 'estimated_cost', // Explicitly add id to ensure it's defined
       header: 'Costo Est.',
-      cell: info => formatCurrency(info.getValue()),
+      cell: info => {
+        const cost = info.getValue();
+        const quantity = info.row.original.quantity || 1;
+        return formatCurrency(cost ? cost * quantity : null);
+      },
     }),
     columnHelper.accessor('internal_cost', {
       id: 'internal_cost', // Explicitly add id to ensure it's defined
       header: 'Costo Interno',
-      cell: info => formatCurrency(info.getValue()),
+      cell: info => {
+        const cost = info.getValue();
+        const quantity = info.row.original.quantity || 1;
+        return formatCurrency(cost ? cost * quantity : null);
+      },
     }),
     columnHelper.accessor('client_cost', {
       id: 'client_cost', // Explicitly add id to ensure it's defined
       header: 'Costo Cliente',
-      cell: info => formatCurrency(info.getValue()),
+      cell: info => {
+        const cost = info.getValue();
+        const quantity = info.row.original.quantity || 1;
+        return formatCurrency(cost ? cost * quantity : null);
+      },
     }),
   ]
 
@@ -138,17 +150,17 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction, 
       </td>
       <td className="px-3 py-2 text-xs text-foreground">
         {formatCurrency(
-          items.reduce((sum, item) => sum + (item.estimated_cost || 0), 0)
+          items.reduce((sum, item) => sum + ((item.estimated_cost || 0) * (item.quantity || 1)), 0)
         )}
       </td>
       <td className="px-3 py-2 text-xs text-foreground">
         {formatCurrency(
-          items.reduce((sum, item) => sum + (item.internal_cost || 0), 0)
+          items.reduce((sum, item) => sum + ((item.internal_cost || 0) * (item.quantity || 1)), 0)
         )}
       </td>
       <td className="px-3 py-2 text-xs text-foreground">
         {formatCurrency(
-          items.reduce((sum, item) => sum + (item.client_cost || 0), 0)
+          items.reduce((sum, item) => sum + ((item.client_cost || 0) * (item.quantity || 1)), 0)
         )}
       </td>
     </>
