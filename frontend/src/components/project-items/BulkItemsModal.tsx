@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { useCreateProjectItem, useProjectAreas } from '../../hooks/useProjectItems'
-import { useSuppliers } from '../../hooks/useSuppliers'
 import { Button } from '../ui/button'
-import { Combobox } from '../ui/Combobox'
-import { ComboboxObject } from '../ui/ComboboxObject'
+import { FileUploader } from '../ui/file-uploader'
+import { CSVPreviewTable } from './CSVPreviewTable'
 import { toast } from '../ui/toast'
-import { Trash2, Plus } from 'lucide-react'
+import { parseCSVFile, parseCSVString } from '../../utils/csvParser'
+import { csvItemSchema } from '../../schemas/bulkItemSchema'
+import { parseImageToCSV } from '../../services/ocrService'
 
 interface BulkItemsModalProps {
   isOpen: boolean
@@ -14,54 +14,159 @@ interface BulkItemsModalProps {
   onClose: () => void
 }
 
-interface BulkItemFormData {
-  items: {
-    area: string
-    item_name: string
-    description: string
-    category: 'Muebles' | 'Decoración' | 'Accesorios' | 'Materiales' | 'Mano de Obra' | 'Otro'
-    supplier_id?: number
-    cost: number | undefined
-  }[]
+interface PreviewItem {
+  row: number
+  area: string
+  item_name: string
+  description: string
+  category: 'Muebles' | 'Decoración' | 'Accesorios' | 'Materiales' | 'Mano de Obra' | 'Otro'
+  cost: number
+  errors: { field: string; message: string }[]
+  isValid: boolean
 }
 
+type Step = 'upload' | 'preview'
+
 export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalProps) {
+  const [step, setStep] = useState<Step>('upload')
+  const [previewItems, setPreviewItems] = useState<PreviewItem[]>([])
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [parseError, setParseError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+
   const createItem = useCreateProjectItem()
   const { data: areas = [] } = useProjectAreas(projectId)
-  const { data: suppliers = [] } = useSuppliers()
 
-  const { register, control, handleSubmit, formState: { errors } } = useForm<BulkItemFormData>({
-    defaultValues: {
-      items: [
-        {
-          area: '',
-          item_name: '',
-          description: '',
-          category: 'Otro',
-          supplier_id: undefined,
-          cost: undefined
+  // Reusable function to process CSV data (works for both file upload and future OCR)
+  const processCSVData = (rawData: any[]): PreviewItem[] => {
+    return rawData.map((row, idx) => {
+      const parseResult = csvItemSchema.safeParse(row)
+
+      if (parseResult.success) {
+        return {
+          row: idx + 2, // +2 for header + 0-indexing
+          ...parseResult.data,
+          errors: [],
+          isValid: true
         }
-      ]
+      } else {
+        return {
+          row: idx + 2,
+          area: row.area || '',
+          item_name: row.item_name || '',
+          description: row.description || '',
+          category: row.category || 'Otro',
+          cost: parseFloat(row.cost) || 0,
+          errors: parseResult.error.issues.map(issue => ({
+            field: issue.path[0] as string,
+            message: issue.message
+          })),
+          isValid: false
+        }
+      }
+    })
+  }
+
+  // Handle file upload (CSV or Image)
+  const handleFileSelected = async (file: File | null) => {
+    if (!file) {
+      setParseError(null)
+      return
     }
-  })
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'items'
-  })
+    setIsProcessing(true)
+    setParseError(null)
 
-  const onSubmit = async (data: BulkItemFormData) => {
+    try {
+      // Check if file is an image
+      if (file.type.startsWith('image/')) {
+        await handleImageOCR(file)
+      } else {
+        await handleCSVFile(file)
+      }
+    } catch (error) {
+      setParseError('Error al procesar el archivo')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  // Handle CSV file upload
+  const handleCSVFile = async (file: File) => {
+    // 1. Parse CSV file
+    const result = await parseCSVFile<any>(file, [
+      'area', 'item_name', 'description', 'category', 'cost'
+    ])
+
+    if (result.errors.length > 0) {
+      setParseError(result.errors.join('. '))
+      return
+    }
+
+    // 2. Validate and process data
+    const validated = processCSVData(result.data)
+
+    setPreviewItems(validated)
+    setStep('preview')
+  }
+
+  // Handle image OCR
+  const handleImageOCR = async (imageFile: File) => {
+    // 1. Parse image with OCR
+    const ocrResult = await parseImageToCSV(imageFile)
+
+    if (ocrResult.error) {
+      setParseError(ocrResult.error)
+      return
+    }
+
+    // 2. Parse CSV string from OCR
+    const result = parseCSVString<any>(ocrResult.csvData, [
+      'area', 'item_name', 'description', 'category', 'cost'
+    ])
+
+    if (result.errors.length > 0) {
+      setParseError(result.errors.join('. '))
+      return
+    }
+
+    // 3. Validate and process data
+    const validated = processCSVData(result.data)
+
+    setPreviewItems(validated)
+    setStep('preview')
+  }
+
+  const handleRemoveItem = (index: number) => {
+    setPreviewItems(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const handleBackToUpload = () => {
+    setStep('upload')
+    setPreviewItems([])
+    setParseError(null)
+  }
+
+  const handleSubmit = async () => {
     setIsSaving(true)
 
     try {
+      const validItems = previewItems.filter(item => item.isValid)
+
+      if (validItems.length === 0) {
+        toast({
+          message: 'No hay artículos válidos para crear',
+          type: 'error'
+        })
+        setIsSaving(false)
+        return
+      }
+
       let successCount = 0
       let failCount = 0
 
-      for (const item of data.items) {
-        // Skip empty rows (rows with no item name)
-        if (!item.item_name.trim()) continue
-
+      // Same sequential creation as current implementation
+      for (const item of validItems) {
         try {
           await createItem.mutateAsync({
             project_id: projectId,
@@ -69,9 +174,8 @@ export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalPro
             area: item.area || undefined,
             description: item.description || undefined,
             category: item.category,
-            supplier_id: item.supplier_id || undefined,
             quantity: 1,
-            // Save the single cost to all three cost fields
+            // Cost duplicated to all three fields
             estimated_cost: item.cost,
             internal_cost: item.cost,
             client_cost: item.cost
@@ -83,6 +187,7 @@ export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalPro
         }
       }
 
+      // Same toast logic as current implementation
       if (successCount > 0) {
         toast({
           message: `${successCount} artículo${successCount > 1 ? 's' : ''} creado${successCount > 1 ? 's' : ''} exitosamente`,
@@ -97,6 +202,7 @@ export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalPro
         })
       }
 
+      // Only close if all succeeded
       if (failCount === 0) {
         onClose()
       }
@@ -111,18 +217,10 @@ export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalPro
     }
   }
 
-  const addRow = () => {
-    append({
-      area: '',
-      item_name: '',
-      description: '',
-      category: 'Otro',
-      supplier_id: undefined,
-      cost: undefined
-    })
-  }
-
   if (!isOpen) return null
+
+  const validCount = previewItems.filter(item => item.isValid).length
+  const invalidCount = previewItems.length - validCount
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -132,10 +230,12 @@ export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalPro
       <div className="z-10 bg-background rounded-lg shadow-lg w-full max-w-7xl max-h-[90vh] min-h-[500px] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-background p-4 border-b flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Creación Masiva de Artículos</h2>
+          <h2 className="text-xl font-semibold">
+            {step === 'upload' ? 'Creación Masiva de Artículos - Importar' : 'Creación Masiva de Artículos - Revisar Datos'}
+          </h2>
           <button
             onClick={onClose}
-            disabled={isSaving}
+            disabled={isSaving || isProcessing}
             className="p-1 rounded-full hover:bg-muted transition-colors disabled:opacity-50"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -145,153 +245,110 @@ export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalPro
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
-          {/* Table Container */}
-          <div className="flex-1 overflow-auto p-4">
-            <table className="w-full border-collapse">
-              <thead className="sticky top-0 bg-background z-10">
-                <tr className="border-b">
-                  <th className="text-left p-2 font-medium min-w-[150px]">Área</th>
-                  <th className="text-left p-2 font-medium min-w-[120px]">
-                    Categoría <span className="text-red-500">*</span>
-                  </th>
-                  <th className="text-left p-2 font-medium min-w-[200px]">
-                    Nombre <span className="text-red-500">*</span>
-                  </th>
-                  <th className="text-left p-2 font-medium min-w-[200px]">Descripción</th>
-                  <th className="text-left p-2 font-medium min-w-[200px]">Proveedor</th>
-                  <th className="text-left p-2 font-medium min-w-[150px]">Costo</th>
-                  <th className="text-left p-2 font-medium w-[50px]"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {fields.map((field, index) => (
-                  <tr key={field.id} className="border-b hover:bg-muted/50">
-                    <td className="p-2">
-                      <Controller
-                        name={`items.${index}.area`}
-                        control={control}
-                        render={({ field }) => (
-                          <Combobox
-                            id={`area-${index}`}
-                            value={field.value || ''}
-                            onChange={field.onChange}
-                            options={areas}
-                            placeholder="Área"
-                          />
-                        )}
-                      />
-                    </td>
-                    <td className="p-2">
-                      <select
-                        {...register(`items.${index}.category`, { required: 'Requerido' })}
-                        className="w-full p-2 border rounded-md"
-                      >
-                        <option value="Muebles">Muebles</option>
-                        <option value="Decoración">Decoración</option>
-                        <option value="Accesorios">Accesorios</option>
-                        <option value="Materiales">Materiales</option>
-                        <option value="Mano de Obra">Mano de Obra</option>
-                        <option value="Otro">Otro</option>
-                      </select>
-                    </td>
-                    <td className="p-2">
-                      <input
-                        {...register(`items.${index}.item_name`, { required: 'Requerido' })}
-                        className={`w-full p-2 border rounded-md ${errors.items?.[index]?.item_name ? 'border-red-500' : ''}`}
-                        placeholder="Nombre del artículo"
-                      />
-                    </td>
-                    <td className="p-2">
-                      <input
-                        {...register(`items.${index}.description`)}
-                        className="w-full p-2 border rounded-md"
-                        placeholder="Descripción"
-                      />
-                    </td>
-                    <td className="p-2">
-                      <Controller
-                        name={`items.${index}.supplier_id`}
-                        control={control}
-                        render={({ field }) => (
-                          <ComboboxObject
-                            id={`supplier-${index}`}
-                            value={field.value}
-                            onChange={field.onChange}
-                            options={suppliers.map(supplier => ({
-                              value: supplier.id,
-                              label: supplier.name,
-                              description: supplier.contact_name || undefined
-                            }))}
-                            placeholder="Proveedor"
-                            emptyOption="Sin proveedor"
-                          />
-                        )}
-                      />
-                    </td>
-                    <td className="p-2">
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        {...register(`items.${index}.cost`, {
-                          valueAsNumber: true,
-                          min: { value: 0, message: 'Debe ser positivo' }
-                        })}
-                        className="w-full p-2 border rounded-md"
-                        placeholder="0.00"
-                      />
-                    </td>
-                    <td className="p-2">
-                      {fields.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => remove(index)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                          title="Eliminar fila"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {/* Upload Step */}
+        {step === 'upload' && (
+          <div className="flex-1 p-8 flex items-center justify-center overflow-auto">
+            <div className="max-w-2xl w-full space-y-6">
+              {/* Instructions */}
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h3 className="font-medium mb-2">Importar Artículos</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Puedes importar artículos de dos formas:
+                </p>
 
-          {/* Footer */}
-          <div className="bg-background p-4 border-t flex justify-between items-center">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addRow}
-              disabled={isSaving}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Añadir Fila
-            </Button>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium mb-1">1. Archivo CSV</p>
+                    <code className="text-xs bg-background p-2 rounded block">
+                      area,item_name,description,category,cost
+                    </code>
+                    <ul className="text-xs text-muted-foreground mt-2 space-y-1 ml-4">
+                      <li>• <strong>area</strong>: Área del proyecto (opcional)</li>
+                      <li>• <strong>item_name</strong>: Nombre del artículo (requerido)</li>
+                      <li>• <strong>description</strong>: Descripción (opcional)</li>
+                      <li>• <strong>category</strong>: Categoría (opcional, default: "Otro")</li>
+                      <li>• <strong>cost</strong>: Costo en DOP (requerido)</li>
+                    </ul>
+                  </div>
 
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isSaving}
-              >
-                Cancelar
-              </Button>
+                  <div>
+                    <p className="text-sm font-medium mb-1">2. Imagen de Cuenta/Factura</p>
+                    <p className="text-xs text-muted-foreground">
+                      Sube una foto de una cuenta o factura escrita a mano y nuestro sistema extraerá automáticamente los artículos y costos usando IA.
+                    </p>
+                  </div>
+                </div>
 
-              <Button
-                type="submit"
-                disabled={isSaving}
-              >
-                {isSaving ? 'Guardando...' : 'Guardar Todos'}
-              </Button>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Categorías válidas: Muebles, Decoración, Accesorios, Materiales, Mano de Obra, Otro
+                </p>
+              </div>
+
+              {/* File uploader */}
+              <FileUploader
+                onFileSelected={handleFileSelected}
+                accept=".csv,text/csv,image/jpeg,image/jpg,image/png,image/webp"
+                label="Seleccionar CSV o imagen"
+                isUploading={isProcessing}
+                error={parseError}
+              />
             </div>
           </div>
-        </form>
+        )}
+
+        {/* Preview Step */}
+        {step === 'preview' && (
+          <>
+            <div className="flex-1 overflow-auto p-4">
+              {/* Summary bar */}
+              <div className="bg-muted/50 p-3 rounded-lg mb-4 flex justify-between items-center">
+                <div className="text-sm">
+                  <span className="font-medium">{validCount}</span> válidos,
+                  <span className="font-medium text-destructive ml-1">{invalidCount}</span> con errores
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackToUpload}
+                  disabled={isSaving}
+                >
+                  Cargar otro archivo
+                </Button>
+              </div>
+
+              {/* Preview table */}
+              <CSVPreviewTable
+                items={previewItems}
+                onItemsChange={setPreviewItems}
+                onRemoveItem={handleRemoveItem}
+                areas={areas}
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="bg-background p-4 border-t flex justify-between items-center">
+              <div className="text-sm text-muted-foreground">
+                Se crearán {validCount} artículo{validCount !== 1 ? 's' : ''}
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={isSaving}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSaving || validCount === 0}
+                >
+                  {isSaving ? 'Creando...' : `Crear ${validCount} Artículo${validCount !== 1 ? 's' : ''}`}
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
