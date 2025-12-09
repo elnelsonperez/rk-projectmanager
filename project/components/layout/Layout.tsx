@@ -5,11 +5,14 @@ import { Sidebar } from './Sidebar';
 import { Sheet, SheetContent } from '../ui/sheet';
 import { Button } from '../ui/button';
 import { useProjectStore } from '../../store/projectStore';
+import { useAuth } from '@/lib/auth-context';
+import { LogOut } from 'lucide-react';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const currentProject = useProjectStore((state) => state.currentProject);
+  const { signOut } = useAuth();
   
   return (
     <div className="h-screen flex flex-col">
@@ -36,9 +39,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
         </Button>
-        <h1 className="text-xl font-bold ml-2">
+        <h1 className="text-xl font-bold ml-2 flex-1">
           {currentProject ? currentProject.name : "Gestor de Proyectos"}
         </h1>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={signOut}
+          aria-label="Cerrar Sesión"
+          title="Cerrar Sesión"
+        >
+          <LogOut className="h-5 w-5" />
+        </Button>
       </header>
 
       <div className="flex flex-1 overflow-hidden">

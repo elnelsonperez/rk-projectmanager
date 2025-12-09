@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { createServerClient } from '@/lib/supabase/server';
 
 const SYSTEM_PROMPT = `You are a document parser specialized in extracting itemized costs from handwritten invoices, accounts ("cuentas"), and budget notes, particularly in Spanish for interior design and construction projects.
 
@@ -58,6 +59,17 @@ Now parse the provided image and return ONLY the CSV output, no explanations.`;
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const supabase = await createServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'No autorizado' },
+        { status: 401 }
+      );
+    }
+
     // Get API key from environment variable (server-side only)
     const apiKey = process.env.ANTHROPIC_API_KEY;
 

@@ -1,21 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from './supabase/client';
 import type { Database } from '@/types/database.types';
 
-// Initialize the Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-
-// Debug: Log environment variables (only in development)
-if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-  console.log('Supabase URL:', supabaseUrl || 'NOT SET');
-  console.log('Supabase Key:', supabaseKey ? '✓ SET' : '✗ NOT SET');
-}
-
-// Create a safe client that won't throw during build time
-export const supabase =
-  supabaseUrl && supabaseKey
-    ? createClient<Database>(supabaseUrl, supabaseKey)
-    : ({} as ReturnType<typeof createClient<Database>>);
+// Client-side Supabase client for use in React components and hooks
+export const supabase = createClient();
 
 // Function to get project report data
 export async function getProjectReport(projectId: number) {
