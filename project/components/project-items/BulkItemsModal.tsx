@@ -251,33 +251,32 @@ export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalPro
         {step === 'upload' && (
           <div className="flex-1 p-8 flex items-center justify-center overflow-auto">
             <div className="max-w-2xl w-full space-y-6">
-              {/* Instructions */}
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <h3 className="font-medium mb-2">Importar Artículos</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Puedes importar artículos de dos formas:
+              {/* Main heading */}
+              <div className="text-center">
+                <h3 className="text-xl font-semibold mb-2">Importar Artículos con IA</h3>
+                <p className="text-sm text-muted-foreground">
+                  Sube una foto de tu cuenta o factura escrita a mano
                 </p>
+              </div>
 
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm font-medium mb-1">1. Archivo CSV</p>
-                    <code className="text-xs bg-background p-2 rounded block">
-                      area,item_name,description,category,cost
-                    </code>
-                    <ul className="text-xs text-muted-foreground mt-2 space-y-1 ml-4">
-                      <li>• <strong>area</strong>: Área del proyecto (opcional)</li>
-                      <li>• <strong>item_name</strong>: Nombre del artículo (requerido)</li>
-                      <li>• <strong>description</strong>: Descripción (opcional)</li>
-                      <li>• <strong>category</strong>: Categoría (opcional, default: "Otro")</li>
-                      <li>• <strong>cost</strong>: Costo en DOP (requerido)</li>
-                    </ul>
+              {/* AI Feature highlight */}
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-6">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
                   </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-1">2. Imagen de Cuenta/Factura</p>
-                    <p className="text-xs text-muted-foreground">
-                      Sube una foto de una cuenta o factura escrita a mano y nuestro sistema extraerá automáticamente los artículos y costos usando IA.
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-blue-900 mb-2">Extracción Automática con IA</h4>
+                    <p className="text-sm text-blue-800 mb-3">
+                      Nuestro sistema usa inteligencia artificial para leer tu factura y extraer automáticamente los artículos, cantidades y costos.
                     </p>
+                    <ul className="text-xs text-blue-700 space-y-1">
+                      <li>✓ Funciona con escritura a mano</li>
+                      <li>✓ Reconoce artículos y precios en español</li>
+                      <li>✓ Expande abreviaciones automáticamente</li>
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -285,15 +284,15 @@ export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalPro
               {/* File uploader */}
               <FileUploader
                 onFileSelected={handleFileSelected}
-                accept=".csv,text/csv,image/jpeg,image/jpg,image/png,image/webp"
-                label="Seleccionar CSV o imagen"
+                accept="image/jpeg,image/jpg,image/png,image/webp,.csv,text/csv"
+                label="Seleccionar imagen de factura"
                 isUploading={isProcessing}
                 error={parseError}
               />
 
               {/* OCR Processing indicator */}
               {isProcessing && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-center space-x-3">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
                     <div>
@@ -305,6 +304,51 @@ export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalPro
                   </div>
                 </div>
               )}
+
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">o también</span>
+                </div>
+              </div>
+
+              {/* CSV Alternative */}
+              <details className="group">
+                <summary className="cursor-pointer list-none">
+                  <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-medium">Importar desde archivo CSV</p>
+                          <p className="text-xs text-muted-foreground">Para usuarios avanzados</p>
+                        </div>
+                      </div>
+                      <svg className="h-5 w-5 text-muted-foreground group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </summary>
+                <div className="mt-3 p-4 bg-muted/30 rounded-lg border text-sm">
+                  <p className="font-medium mb-2">Formato del archivo CSV:</p>
+                  <code className="text-xs bg-background p-2 rounded block mb-3">
+                    area,item_name,description,category,cost
+                  </code>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• <strong>area</strong>: Área del proyecto (opcional)</li>
+                    <li>• <strong>item_name</strong>: Nombre del artículo (requerido)</li>
+                    <li>• <strong>description</strong>: Descripción (opcional)</li>
+                    <li>• <strong>category</strong>: Muebles, Decoración, Accesorios, Materiales, Mano de Obra, Otro</li>
+                    <li>• <strong>cost</strong>: Costo en DOP (requerido)</li>
+                  </ul>
+                </div>
+              </details>
             </div>
           </div>
         )}
