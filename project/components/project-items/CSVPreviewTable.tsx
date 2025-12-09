@@ -69,15 +69,15 @@ export function CSVPreviewTable({ items, onItemsChange, onRemoveItem, areas }: C
         <thead className="sticky top-0 bg-background z-10">
           <tr className="border-b">
             <th className="text-left p-2 font-medium w-[60px]">Fila</th>
-            <th className="text-left p-2 font-medium min-w-[150px]">Área</th>
-            <th className="text-left p-2 font-medium min-w-[120px]">
+            <th className="text-left p-2 font-medium w-[120px]">Área</th>
+            <th className="text-left p-2 font-medium w-[140px]">
               Categoría
             </th>
-            <th className="text-left p-2 font-medium min-w-[200px]">
+            <th className="text-left p-2 font-medium min-w-[250px]">
               Nombre <span className="text-red-500">*</span>
             </th>
-            <th className="text-left p-2 font-medium min-w-[200px]">Descripción</th>
-            <th className="text-left p-2 font-medium min-w-[150px]">Costo</th>
+            <th className="text-left p-2 font-medium min-w-[250px]">Descripción</th>
+            <th className="text-left p-2 font-medium w-[120px]">Costo</th>
             <th className="text-left p-2 font-medium w-[50px]"></th>
           </tr>
         </thead>

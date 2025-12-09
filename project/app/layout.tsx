@@ -9,9 +9,6 @@ export const metadata: Metadata = {
   description: 'Sistema de gestión de proyectos de diseño de interiores',
 };
 
-// Make the route dynamic to avoid prerendering issues with Supabase
-export const dynamic = 'force-dynamic';
-
 export default function RootLayout({
   children,
 }: Readonly<{

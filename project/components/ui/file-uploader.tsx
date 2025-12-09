@@ -27,6 +27,7 @@ export function FileUploader({
 }: FileUploaderProps) {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Determine if we have an existing file (either selected or from props)
@@ -107,6 +108,50 @@ export function FileUploader({
       fileInputRef.current.click();
     }
   };
+
+  // Handle drag events
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!disabled && !isUploading) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (disabled || isUploading) return;
+
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles && droppedFiles[0]) {
+      const droppedFile = droppedFiles[0];
+      setFile(droppedFile);
+
+      // Create preview URL for images
+      if (droppedFile.type.startsWith('image/')) {
+        const url = URL.createObjectURL(droppedFile);
+        setPreviewUrl(url);
+      } else {
+        setPreviewUrl(null);
+      }
+
+      onFileSelected(droppedFile);
+    }
+  };
   
   // Determine filename to display
   const displayFileName = file 
@@ -125,8 +170,18 @@ export function FileUploader({
   return (
     <div className="space-y-2">
       {label && <label className="block font-medium text-sm">{label}</label>}
-      
-      <div className="border border-input rounded-md p-3 bg-background">
+
+      <div
+        className={`border rounded-md p-3 bg-background transition-colors ${
+          isDragging
+            ? 'border-blue-500 bg-blue-50 border-2'
+            : 'border-input'
+        }`}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         {/* Hidden file input */}
         <input
           type="file"
@@ -136,18 +191,24 @@ export function FileUploader({
           accept={accept}
           disabled={disabled || isUploading}
         />
-        
+
         {/* File uploader UI */}
         {!hasFile ? (
           // Upload button when no file selected
           <div className="text-center py-2 sm:py-4">
             {/* Icon only visible on larger screens */}
-            <div className="hidden sm:flex mx-auto w-10 h-10 rounded-full bg-muted/50 items-center justify-center mb-2">
-              <Paperclip className="h-5 w-5 text-muted-foreground" />
+            <div className={`hidden sm:flex mx-auto w-10 h-10 rounded-full items-center justify-center mb-2 ${
+              isDragging ? 'bg-blue-100' : 'bg-muted/50'
+            }`}>
+              <Paperclip className={`h-5 w-5 ${isDragging ? 'text-blue-600' : 'text-muted-foreground'}`} />
             </div>
             {/* Reduced text on mobile */}
-            <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
-              <span className="hidden sm:inline">Arrastra un archivo aquí o haz clic para seleccionarlo</span>
+            <p className={`text-xs sm:text-sm mb-2 sm:mb-3 ${
+              isDragging ? 'text-blue-600 font-medium' : 'text-muted-foreground'
+            }`}>
+              <span className="hidden sm:inline">
+                {isDragging ? 'Suelta el archivo aquí' : 'Arrastra un archivo aquí o haz clic para seleccionarlo'}
+              </span>
               <span className="sm:hidden">Selecciona un archivo</span>
             </p>
             <Button
