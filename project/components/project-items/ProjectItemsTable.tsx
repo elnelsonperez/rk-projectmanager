@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { createColumnHelper, ColumnDef } from '@tanstack/react-table'
-import { useProjectItems, useBulkDeleteProjectItems } from '../../hooks/useProjectItems'
+import { useProjectItems, useBulkDeleteProjectItems, useImproveProjectItems } from '../../hooks/useProjectItems'
 import { ProjectItem } from '../../hooks/useProjectItems'
-import { PlusSquare, Trash2 } from 'lucide-react'
+import { PlusSquare, Trash2, Sparkles } from 'lucide-react'
 import { formatCurrency } from '../../utils/formatters'
 import { DataTable } from '../ui/data-table'
 import { Button } from '../ui/button'
 import { ConfirmationDialog } from '../ui/confirmation-dialog'
 import { toast } from '../ui/toast'
+import { ImprovementsComparisonModal } from './ImprovementsComparisonModal'
+import type { ItemComparison } from '../../types/improvements.types'
 
 type ProjectItemWithSupplier = ProjectItem & { 
   suppliers: { name: string } | null 
@@ -23,9 +25,13 @@ interface ProjectItemsTableProps {
 export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction, onBulkCreate }: ProjectItemsTableProps) {
   const { data: items, isLoading } = useProjectItems(projectId)
   const bulkDelete = useBulkDeleteProjectItems()
+  const improveItems = useImproveProjectItems()
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
   const [itemsToDelete, setItemsToDelete] = useState<ProjectItemWithSupplier[]>([])
   const [clearSelectionCallback, setClearSelectionCallback] = useState<(() => void) | null>(null)
+  const [showImprovementsModal, setShowImprovementsModal] = useState(false)
+  const [improvements, setImprovements] = useState<ItemComparison[]>([])
+  const [isProcessingAI, setIsProcessingAI] = useState(false)
   
   const columnHelper = createColumnHelper<ProjectItemWithSupplier>()
   
@@ -140,6 +146,91 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction, 
     setItemsToDelete([])
   }
 
+  // Handle AI improvements
+  const handleImproveWithAI = async () => {
+    if (!items || items.length === 0) {
+      toast({
+        message: 'No hay artículos para mejorar',
+        type: 'error',
+      })
+      return
+    }
+
+    setIsProcessingAI(true)
+
+    try {
+      const result = await improveItems.mutateAsync(projectId)
+
+      console.log('AI Improvement Result:', result)
+
+      // Check if AI returned an error
+      if (!result.success || result.error) {
+        console.error('AI returned error:', result.error)
+        toast({
+          message: result.error || 'Error al procesar los artículos',
+          type: 'error',
+        })
+        return
+      }
+
+      // Check if no improvements were found
+      if (result.items_with_changes === 0) {
+        console.log('No improvements found')
+        toast({
+          message: result.message || 'No se encontraron mejoras necesarias',
+          type: 'info',
+        })
+        return
+      }
+
+      console.log('Processing improvements:', result.improvements.length)
+
+      // Transform improvements into comparisons
+      const comparisons: ItemComparison[] = result.improvements.map((improvement: any) => {
+        const originalItem = items.find((item) => item.id === improvement.id)
+        if (!originalItem) {
+          throw new Error(`Item with id ${improvement.id} not found`)
+        }
+
+        const hasChanges =
+          originalItem.item_name !== improvement.improved_name ||
+          (originalItem.description || '') !== improvement.improved_description ||
+          originalItem.category !== improvement.improved_category
+
+        return {
+          id: improvement.id,
+          original_name: originalItem.item_name,
+          original_description: originalItem.description || '',
+          original_category: originalItem.category,
+          improved_name: improvement.improved_name,
+          improved_description: improvement.improved_description,
+          improved_category: improvement.improved_category,
+          has_changes: hasChanges,
+          accepted: hasChanges, // Auto-accept items with changes by default
+        }
+      })
+
+      console.log('Comparisons created:', comparisons.length)
+      console.log('Items with changes:', comparisons.filter(c => c.has_changes).length)
+
+      setImprovements(comparisons)
+      setShowImprovementsModal(true)
+
+      console.log('Modal should now be visible')
+    } catch (error) {
+      console.error('Error improving items:', error)
+      toast({
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Error al mejorar artículos',
+        type: 'error',
+      })
+    } finally {
+      setIsProcessingAI(false)
+    }
+  }
+
   // Create a summary row to display totals
   const summaryRow = items && items.length > 0 ? (
     <>
@@ -166,8 +257,34 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction, 
     </>
   ) : null;
 
+  // Show action buttons when there are no items
+  const emptyStateButtons = !items || items.length === 0 ? (
+    <div className="flex gap-2 justify-center mb-4">
+      <Button
+        size="sm"
+        onClick={() => onEditItem({} as ProjectItemWithSupplier)}
+        className="flex gap-1 items-center"
+      >
+        <PlusSquare className="h-3.5 w-3.5" />
+        <span>Añadir Artículo</span>
+      </Button>
+      {onBulkCreate && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onBulkCreate}
+          className="flex gap-1 items-center"
+        >
+          <PlusSquare className="h-3.5 w-3.5" />
+          <span>Creación Masiva</span>
+        </Button>
+      )}
+    </div>
+  ) : null;
+
   return (
     <>
+      {emptyStateButtons}
       <DataTable
         data={items || []}
         columns={columns}
@@ -176,11 +293,7 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction, 
         onRowActionClick={onCreateTransaction}
         actionIcon={<PlusSquare className="h-3 w-3" />}
         actionTooltip="Crear transacción"
-        noDataMessage="No se encontraron artículos. Añade tu primer artículo para comenzar."
-        noDataAction={{
-          label: "Añadir Primer Artículo",
-          onClick: () => onEditItem({} as ProjectItemWithSupplier)
-        }}
+        noDataMessage="No se encontraron artículos."
         summaryRow={summaryRow}
         initialColumnVisibility={initialColumnVisibility}
         enableRowSelection={true}
@@ -218,12 +331,38 @@ export function ProjectItemsTable({ projectId, onEditItem, onCreateTransaction, 
                       <span>Creación Masiva</span>
                     </Button>
                   )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleImproveWithAI}
+                    disabled={isProcessingAI || !items || items.length === 0}
+                    className="flex gap-1 items-center"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>
+                      {isProcessingAI ? 'Procesando...' : 'Mejorar con AI'}
+                    </span>
+                  </Button>
                 </>
               )}
             </div>
             {columnSelector}
           </div>
         )}
+      />
+
+      <ImprovementsComparisonModal
+        isOpen={showImprovementsModal}
+        projectId={projectId}
+        comparisons={improvements}
+        onClose={() => setShowImprovementsModal(false)}
+        onSuccess={() => {
+          // Modal will close itself
+          toast({
+            message: 'Artículos mejorados exitosamente',
+            type: 'success',
+          })
+        }}
       />
 
       <ConfirmationDialog

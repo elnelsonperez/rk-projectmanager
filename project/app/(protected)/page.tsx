@@ -14,6 +14,7 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
         <h1 className="text-2xl sm:text-3xl font-bold">Panel</h1>
         <Link href="/projects/new">
+
           <Button size="sm" className="text-xs sm:text-sm">
             Nuevo Proyecto
           </Button>
@@ -42,6 +43,9 @@ export default function Dashboard() {
                     Nombre
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-foreground">
+                    Cliente
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-foreground">
                     Estado
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-foreground">
@@ -61,6 +65,9 @@ export default function Dashboard() {
                   >
                     <td className="px-4 py-3 text-sm font-medium text-foreground">
                       {project.name}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-foreground">
+                      {project.clients?.name || '-'}
                     </td>
                     <td className="px-4 py-3 text-sm text-foreground">
                       {project.status}

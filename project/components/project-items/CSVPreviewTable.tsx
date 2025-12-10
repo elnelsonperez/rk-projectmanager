@@ -7,7 +7,7 @@ interface PreviewItem {
   area: string
   item_name: string
   description: string
-  category: 'Muebles' | 'Decoración' | 'Accesorios' | 'Materiales' | 'Mano de Obra' | 'Otro'
+  category: string
   cost: number
   errors: { field: string; message: string }[]
   isValid: boolean
@@ -18,13 +18,15 @@ interface CSVPreviewTableProps {
   onItemsChange: (items: PreviewItem[]) => void
   onRemoveItem: (index: number) => void
   areas: string[]
+  categories: string[]
+  projectId: number
 }
 
 interface FormData {
   items: Omit<PreviewItem, 'errors' | 'isValid' | 'row'>[]
 }
 
-export function CSVPreviewTable({ items, onItemsChange, onRemoveItem, areas }: CSVPreviewTableProps) {
+export function CSVPreviewTable({ items, onItemsChange, onRemoveItem, areas, categories, projectId }: CSVPreviewTableProps) {
   const { register, control } = useForm<FormData>({
     defaultValues: {
       items: items.map(item => ({
@@ -114,21 +116,22 @@ export function CSVPreviewTable({ items, onItemsChange, onRemoveItem, areas }: C
                   />
                 </td>
                 <td className="p-2">
-                  <select
-                    {...register(`items.${index}.category`)}
-                    className="w-full p-2 border rounded-md"
-                    onChange={(e) => {
-                      register(`items.${index}.category`).onChange(e)
-                      handleFieldChange(index, 'category', e.target.value as any)
-                    }}
-                  >
-                    <option value="Muebles">Muebles</option>
-                    <option value="Decoración">Decoración</option>
-                    <option value="Accesorios">Accesorios</option>
-                    <option value="Materiales">Materiales</option>
-                    <option value="Mano de Obra">Mano de Obra</option>
-                    <option value="Otro">Otro</option>
-                  </select>
+                  <Controller
+                    name={`items.${index}.category`}
+                    control={control}
+                    render={({ field }) => (
+                      <Combobox
+                        id={`category-${index}`}
+                        value={field.value || ''}
+                        onChange={(value) => {
+                          field.onChange(value)
+                          handleFieldChange(index, 'category', value)
+                        }}
+                        options={categories}
+                        placeholder="Categoría"
+                      />
+                    )}
+                  />
                 </td>
                 <td className="p-2">
                   <div>

@@ -13,12 +13,12 @@ export function useProjects() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('*')
+        .select('*, clients(name)')
         .is('deleted_at', null) // Only show non-deleted projects
-        .order('updated_at', { ascending: false })
+        .order('name', { ascending: true })
 
       if (error) throw error
-      return data as Project[]
+      return data as ProjectWithClient[]
     },
   })
 }

@@ -78,7 +78,7 @@ export type Database = {
       project_items: {
         Row: {
           area: string | null
-          category: Database["public"]["Enums"]["categoria_item"]
+          category: string
           client_cost: number | null
           created_at: string | null
           description: string | null
@@ -95,7 +95,7 @@ export type Database = {
         }
         Insert: {
           area?: string | null
-          category?: Database["public"]["Enums"]["categoria_item"]
+          category?: string
           client_cost?: number | null
           created_at?: string | null
           description?: string | null
@@ -112,7 +112,7 @@ export type Database = {
         }
         Update: {
           area?: string | null
-          category?: Database["public"]["Enums"]["categoria_item"]
+          category?: string
           client_cost?: number | null
           created_at?: string | null
           description?: string | null
@@ -362,13 +362,6 @@ export type Database = {
       }
     }
     Enums: {
-      categoria_item:
-        | "Muebles"
-        | "Decoración"
-        | "Accesorios"
-        | "Materiales"
-        | "Mano de Obra"
-        | "Otro"
       estado_proyecto:
         | "Planificación"
         | "En Progreso"
@@ -490,14 +483,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      categoria_item: [
-        "Muebles",
-        "Decoración",
-        "Accesorios",
-        "Materiales",
-        "Mano de Obra",
-        "Otro",
-      ],
       estado_proyecto: [
         "Planificación",
         "En Progreso",

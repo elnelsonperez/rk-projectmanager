@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useCreateProjectItem, useProjectAreas } from '../../hooks/useProjectItems';
+import { useCreateProjectItem, useProjectAreas, useProjectCategories } from '../../hooks/useProjectItems';
 import { Button } from '../ui/button';
 import { FileUploader } from '../ui/file-uploader';
 import { CSVPreviewTable } from './CSVPreviewTable';
 import { toast } from '../ui/toast';
 import { parseCSVFile, parseCSVString } from '../../utils/csvParser';
 import { csvItemSchema } from '../../utils/bulkItemSchema';
-import { parseImageToCSV } from '../../lib/ocrService';
+import { parseImage } from '../../lib/ocrService';
 
 interface BulkItemsModalProps {
   isOpen: boolean
@@ -21,7 +21,7 @@ interface PreviewItem {
   area: string
   item_name: string
   description: string
-  category: 'Muebles' | 'Decoración' | 'Accesorios' | 'Materiales' | 'Mano de Obra' | 'Otro'
+  category: string
   cost: number
   errors: { field: string; message: string }[]
   isValid: boolean
@@ -38,6 +38,7 @@ export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalPro
 
   const createItem = useCreateProjectItem()
   const { data: areas = [] } = useProjectAreas(projectId)
+  const { data: categories = [] } = useProjectCategories(projectId)
 
   // Reusable function to process CSV data (works for both file upload and future OCR)
   const processCSVData = (rawData: any[]): PreviewItem[] => {
@@ -115,25 +116,35 @@ export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalPro
   // Handle image OCR
   const handleImageOCR = async (imageFile: File) => {
     // 1. Parse image with OCR
-    const ocrResult = await parseImageToCSV(imageFile)
+    const ocrResult = await parseImage(imageFile)
 
-    if (ocrResult.error) {
-      setParseError(ocrResult.error)
+    // 2. Check for errors or no results
+    if (!ocrResult.success || ocrResult.error) {
+      setParseError(ocrResult.error || 'Error al procesar la imagen')
       return
     }
 
-    // 2. Parse CSV string from OCR
-    const result = parseCSVString<any>(ocrResult.csvData, [
-      'area', 'item_name', 'description', 'category', 'cost'
-    ])
-
-    if (result.errors.length > 0) {
-      setParseError(result.errors.join('. '))
+    if (ocrResult.items_found === 0) {
+      setParseError(ocrResult.message || 'No se encontraron artículos en la imagen')
       return
     }
 
-    // 3. Validate and process data
-    const validated = processCSVData(result.data)
+    if (!ocrResult.items || ocrResult.items.length === 0) {
+      setParseError('No se encontraron artículos en la imagen')
+      return
+    }
+
+    // 3. Convert OCR items to CSV data format for validation
+    const csvData = ocrResult.items.map(item => ({
+      area: item.area,
+      item_name: item.item_name,
+      description: item.description,
+      category: item.category,
+      cost: item.cost.toString(),
+    }))
+
+    // 4. Validate and process data
+    const validated = processCSVData(csvData)
 
     setPreviewItems(validated)
     setStep('preview')
@@ -379,6 +390,8 @@ export function BulkItemsModal({ isOpen, projectId, onClose }: BulkItemsModalPro
                 onItemsChange={setPreviewItems}
                 onRemoveItem={handleRemoveItem}
                 areas={areas}
+                categories={categories}
+                projectId={projectId}
               />
             </div>
 

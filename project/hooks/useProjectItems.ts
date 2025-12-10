@@ -12,22 +12,55 @@ export function useProjectAreas(projectId: number | undefined | null) {
     queryKey: ['projectAreas', projectId],
     queryFn: async () => {
       if (!projectId) return []
-      
+
       const { data, error } = await supabase
         .from('project_items')
         .select('area')
         .eq('project_id', projectId)
         .not('area', 'is', null)
-        
+
       if (error) throw error
-      
+
       // Extract unique areas
       const areas = data
         .map(item => item.area)
         .filter((area): area is string => !!area) // Filter out null/undefined
-      
+
       // Get unique values
       return [...new Set(areas)].sort()
+    },
+    enabled: !!projectId,
+  })
+}
+
+// Fetch unique categories for a project
+export function useProjectCategories(projectId: number | undefined | null) {
+  return useQuery({
+    queryKey: ['projectCategories', projectId],
+    queryFn: async () => {
+      if (!projectId) {
+        // Return default categories when no project is specified
+        return ['Accesorios', 'Decoración', 'Mano de Obra', 'Materiales', 'Muebles', 'Otro']
+      }
+
+      const { data, error } = await supabase
+        .from('project_items')
+        .select('category')
+        .eq('project_id', projectId)
+        .not('category', 'is', null)
+
+      if (error) throw error
+
+      // Extract unique categories from database
+      const dbCategories = data
+        .map(item => item.category)
+        .filter((category): category is string => !!category) // Filter out null/undefined
+
+      // Default categories to always include
+      const defaultCategories = ['Muebles', 'Decoración', 'Accesorios', 'Materiales', 'Mano de Obra', 'Otro']
+
+      // Merge database categories with defaults and get unique sorted values
+      return [...new Set([...defaultCategories, ...dbCategories])].sort()
     },
     enabled: !!projectId,
   })
@@ -134,4 +167,74 @@ export function useBulkDeleteProjectItems() {
       return { ids, projectId }
     },
   })
+}
+
+// Bulk update multiple project items
+interface BulkUpdateItem {
+  id: number;
+  item_name?: string;
+  description?: string | null;
+  category?: string;
+}
+
+export function useBulkUpdateProjectItems() {
+  return useMutation({
+    mutationFn: async ({
+      items,
+      projectId,
+    }: {
+      items: BulkUpdateItem[];
+      projectId: number;
+    }) => {
+      const updates = await Promise.all(
+        items.map(async (item) => {
+          const { id, ...updateData } = item;
+          const { data, error } = await supabase
+            .from('project_items')
+            .update(updateData)
+            .eq('id', id)
+            .select()
+            .single();
+
+          if (error) throw error;
+          return data as ProjectItem;
+        })
+      );
+
+      return { updates, projectId };
+    },
+  });
+}
+
+// Hook for AI improvement
+export function useImproveProjectItems() {
+  return useMutation({
+    mutationFn: async (projectId: number) => {
+      // Fetch all items for the project
+      const { data: items, error } = await supabase
+        .from('project_items')
+        .select('id, item_name, description, category')
+        .eq('project_id', projectId);
+
+      if (error) throw error;
+      if (!items || items.length === 0) {
+        throw new Error('No hay artículos para mejorar');
+      }
+
+      // Call AI improvement API
+      const response = await fetch('/api/ai-improve-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, items }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al mejorar artículos');
+      }
+
+      const result = await response.json();
+      return result;
+    },
+  });
 }

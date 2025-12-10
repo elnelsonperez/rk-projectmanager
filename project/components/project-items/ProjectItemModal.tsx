@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
-import { useCreateProjectItem, useUpdateProjectItem, useDeleteProjectItem, ProjectItem, useProjectAreas } from '../../hooks/useProjectItems'
+import { useCreateProjectItem, useUpdateProjectItem, useDeleteProjectItem, ProjectItem, useProjectAreas, useProjectCategories } from '../../hooks/useProjectItems'
 import { useSuppliers } from '../../hooks/useSuppliers'
 import { Button } from '../ui/button'
 import { CurrencyInput } from '../ui/CurrencyInput'
@@ -36,6 +36,7 @@ export function ProjectItemModal({
   const updateItem = useUpdateProjectItem()
   const deleteItem = useDeleteProjectItem()
   const { data: areas = [] } = useProjectAreas(projectId)
+  const { data: categories = [] } = useProjectCategories(projectId)
   const { data: suppliers = [] } = useSuppliers()
   
   const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -251,22 +252,24 @@ export function ProjectItemModal({
                 />
               </div>
               
-              <div className="space-y-2">
-                <label htmlFor="category" className="block font-medium">
-                  Categoría <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="category"
-                  {...register('category', { required: 'La categoría es obligatoria' })}
-                  className="w-full p-2 border rounded-md"
-                >
-                  <option value="Muebles">Muebles</option>
-                  <option value="Decoración">Decoración</option>
-                  <option value="Accesorios">Accesorios</option>
-                  <option value="Materiales">Materiales</option>
-                  <option value="Mano de Obra">Mano de Obra</option>
-                  <option value="Otro">Otro</option>
-                </select>
+              <div>
+                <Controller
+                  name="category"
+                  control={control}
+                  defaultValue="Otro"
+                  rules={{ required: 'La categoría es obligatoria' }}
+                  render={({ field }) => (
+                    <Combobox
+                      id="category"
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      options={categories}
+                      label="Categoría"
+                      placeholder="Selecciona o escribe una categoría"
+                      error={errors.category?.message}
+                    />
+                  )}
+                />
               </div>
             </div>
             
