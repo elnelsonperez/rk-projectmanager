@@ -89,6 +89,63 @@ export class AIClient {
     const response = await this.sendTextPrompt(userPrompt, config);
     return parseJSONResponse<T>(response.content);
   }
+
+  /**
+   * Send a message with structured output (guaranteed valid JSON)
+   * Uses Claude's structured outputs feature to ensure schema compliance
+   *
+   * @param messages - Array of messages to send
+   * @param config - Configuration including system prompt
+   * @param schema - JSON schema that defines the expected output structure
+   * @returns Typed response guaranteed to match the schema
+   */
+  async sendMessageWithStructuredOutput<T>(
+    messages: AIMessage[],
+    config: AIConfig,
+    schema: object
+  ): Promise<T> {
+    const response = await this.anthropic.beta.messages.create({
+      model: config.model || DEFAULT_AI_CONFIG.model!,
+      max_tokens: config.maxTokens || DEFAULT_AI_CONFIG.maxTokens!,
+      temperature: config.temperature ?? DEFAULT_AI_CONFIG.temperature!,
+      system: config.systemPrompt,
+      messages: messages as Anthropic.MessageParam[],
+      betas: ['structured-outputs-2025-11-13'],
+      output_format: {
+        type: 'json_schema',
+        schema: schema,
+      },
+    });
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response type from AI');
+    }
+
+    // Parse is now guaranteed to succeed due to structured outputs
+    return JSON.parse(content.text) as T;
+  }
+
+  /**
+   * Helper: Send a text prompt with structured output (guaranteed valid JSON)
+   * Convenient wrapper for text-only interactions with schema enforcement
+   *
+   * @param userPrompt - Text prompt to send
+   * @param config - Configuration including system prompt
+   * @param schema - JSON schema that defines the expected output structure
+   * @returns Typed response guaranteed to match the schema
+   */
+  async sendTextPromptWithStructuredOutput<T>(
+    userPrompt: string,
+    config: AIConfig,
+    schema: object
+  ): Promise<T> {
+    return this.sendMessageWithStructuredOutput<T>(
+      [{ role: 'user', content: [{ type: 'text', text: userPrompt }] }],
+      config,
+      schema
+    );
+  }
 }
 
 /**

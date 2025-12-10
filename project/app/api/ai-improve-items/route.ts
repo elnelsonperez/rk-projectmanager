@@ -7,6 +7,34 @@ import type {
   ImproveItemsResponse,
 } from '@/types/improvements.types';
 
+// JSON Schema for Improve Items structured output
+const IMPROVE_ITEMS_SCHEMA = {
+  type: 'object',
+  properties: {
+    success: { type: 'boolean' },
+    improvements: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'number' },
+          improved_name: { type: 'string' },
+          improved_description: { type: 'string' },
+          improved_category: { type: 'string' },
+        },
+        required: ['id', 'improved_name', 'improved_description', 'improved_category'],
+        additionalProperties: false,
+      },
+    },
+    items_processed: { type: 'number' },
+    items_with_changes: { type: 'number' },
+    message: { type: 'string' },
+    error: { type: 'string' },
+  },
+  required: ['success', 'items_processed', 'items_with_changes'],
+  additionalProperties: false,
+} as const;
+
 export async function POST(request: NextRequest) {
   try {
     // Authentication
@@ -41,17 +69,18 @@ export async function POST(request: NextRequest) {
 
     const userPrompt = JSON.stringify(itemsInput, null, 2);
 
-    // Call AI using standardized JSON parser
+    // Call AI using structured outputs for guaranteed valid JSON
     const aiClient = createAIClient();
     let aiResponse: ImproveItemsResponse;
 
     try {
-      aiResponse = await aiClient.sendTextPromptForJSON<ImproveItemsResponse>(
+      aiResponse = await aiClient.sendTextPromptWithStructuredOutput<ImproveItemsResponse>(
         userPrompt,
         {
           systemPrompt: IMPROVE_ITEMS_SYSTEM_PROMPT,
           temperature: 0.3, // Lower temperature for more consistent improvements
-        }
+        },
+        IMPROVE_ITEMS_SCHEMA
       );
 
       // Check if AI couldn't process the data

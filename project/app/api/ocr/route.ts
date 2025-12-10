@@ -4,6 +4,34 @@ import { createAIClient } from '@/lib/ai/client';
 import { OCR_SYSTEM_PROMPT } from '@/lib/ai/prompts';
 import type { OCRAPIResponse } from '@/lib/ocrService';
 
+// JSON Schema for OCR structured output
+const OCR_SCHEMA = {
+  type: 'object',
+  properties: {
+    success: { type: 'boolean' },
+    items: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          area: { type: 'string' },
+          item_name: { type: 'string' },
+          description: { type: 'string' },
+          category: { type: 'string' },
+          cost: { type: 'number' },
+        },
+        required: ['area', 'item_name', 'description', 'category', 'cost'],
+        additionalProperties: false,
+      },
+    },
+    items_found: { type: 'number' },
+    message: { type: 'string' },
+    error: { type: 'string' },
+  },
+  required: ['success', 'items_found'],
+  additionalProperties: false,
+} as const;
+
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
@@ -36,9 +64,9 @@ export async function POST(request: NextRequest) {
     // Get media type
     const mediaType = getMediaType(file.type);
 
-    // Create AI client and send image request
+    // Create AI client and send image request with structured output
     const aiClient = createAIClient();
-    const response = await aiClient.sendMessage(
+    const ocrResponse = await aiClient.sendMessageWithStructuredOutput<OCRAPIResponse>(
       [
         {
           role: 'user',
@@ -54,11 +82,9 @@ export async function POST(request: NextRequest) {
           ],
         },
       ],
-      { systemPrompt: OCR_SYSTEM_PROMPT }
+      { systemPrompt: OCR_SYSTEM_PROMPT },
+      OCR_SCHEMA
     );
-
-    // Parse JSON response
-    const ocrResponse = JSON.parse(response.content) as OCRAPIResponse;
 
     // Handle AI response based on success status
     if (!ocrResponse.success) {
