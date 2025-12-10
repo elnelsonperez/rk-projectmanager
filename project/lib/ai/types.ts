@@ -1,5 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
-
 /**
  * Generic message type for AI requests
  * Supports both text and image content
