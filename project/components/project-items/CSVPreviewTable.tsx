@@ -72,7 +72,7 @@ export function CSVPreviewTable({ items, onItemsChange, onRemoveItem, areas, cat
           <tr className="border-b">
             <th className="text-left p-2 font-medium w-[60px]">Fila</th>
             <th className="text-left p-2 font-medium w-[120px]">Área</th>
-            <th className="text-left p-2 font-medium w-[140px]">
+            <th className="text-left p-2 font-medium w-[165px]">
               Categoría
             </th>
             <th className="text-left p-2 font-medium min-w-[250px]">

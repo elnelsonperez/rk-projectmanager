@@ -102,7 +102,7 @@ export class AIClient {
   async sendMessageWithStructuredOutput<T>(
     messages: AIMessage[],
     config: AIConfig,
-    schema: object
+    schema: Record<string, unknown>
   ): Promise<T> {
     const response = await this.anthropic.beta.messages.create({
       model: config.model || DEFAULT_AI_CONFIG.model!,
@@ -113,7 +113,7 @@ export class AIClient {
       betas: ['structured-outputs-2025-11-13'],
       output_format: {
         type: 'json_schema',
-        schema: schema,
+        schema: schema as { [key: string]: unknown },
       },
     });
 
@@ -138,7 +138,7 @@ export class AIClient {
   async sendTextPromptWithStructuredOutput<T>(
     userPrompt: string,
     config: AIConfig,
-    schema: object
+    schema: Record<string, unknown>
   ): Promise<T> {
     return this.sendMessageWithStructuredOutput<T>(
       [{ role: 'user', content: [{ type: 'text', text: userPrompt }] }],
