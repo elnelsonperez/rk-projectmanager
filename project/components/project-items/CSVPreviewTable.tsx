@@ -26,7 +26,7 @@ interface FormData {
   items: Omit<PreviewItem, 'errors' | 'isValid' | 'row'>[]
 }
 
-export function CSVPreviewTable({ items, onItemsChange, onRemoveItem, areas, categories, projectId }: CSVPreviewTableProps) {
+export function CSVPreviewTable({ items, onItemsChange, onRemoveItem, areas, categories }: CSVPreviewTableProps) {
   const { register, control } = useForm<FormData>({
     defaultValues: {
       items: items.map(item => ({

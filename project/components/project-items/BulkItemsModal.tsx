@@ -6,7 +6,7 @@ import { Button } from '../ui/button';
 import { FileUploader } from '../ui/file-uploader';
 import { CSVPreviewTable } from './CSVPreviewTable';
 import { toast } from '../ui/toast';
-import { parseCSVFile, parseCSVString } from '../../utils/csvParser';
+import { parseCSVFile } from '../../utils/csvParser';
 import { csvItemSchema } from '../../utils/bulkItemSchema';
 import { parseImage } from '../../lib/ocrService';
 
